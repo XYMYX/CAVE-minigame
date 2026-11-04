@@ -35,7 +35,10 @@ events:
 
 status:
   simulator: "Test: arrows steer, Space event, Esc quits"
-  twitch: "Twitch is still a stub and does not connect."
+  twitch_connecting: "Twitch: connecting to the chat…"
+  twitch_ready: "Twitch chat connected."
+  twitch_missing: "Twitch: channel missing. Check chat.twitch.channel."
+  twitch_other: "Twitch is unreachable. Retrying."
   quota: "YouTube daily quota is full. Pausing, then retrying."
   rate: "YouTube is throttling. Short pause."
   ended: "No active live chat. Waiting for the stream."

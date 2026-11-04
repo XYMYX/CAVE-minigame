@@ -35,7 +35,10 @@ events:
 
 status:
   simulator: "Test: Pfeile lenken, Leertaste Ereignis, Esc Ende"
-  twitch: "Twitch ist noch ein Platzhalter ohne Verbindung."
+  twitch_connecting: "Twitch: verbinde mit dem Chat…"
+  twitch_ready: "Twitch-Chat verbunden."
+  twitch_missing: "Twitch: Kanal fehlt. chat.twitch.channel prüfen."
+  twitch_other: "Twitch gerade nicht erreichbar. Neuer Versuch."
   quota: "YouTube-Tageslimit voll. Pause, danach neuer Versuch."
   rate: "YouTube bremst gerade. Kurze Pause."
   ended: "Kein aktiver Live-Chat. Warte auf den Stream."
