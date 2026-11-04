@@ -1,0 +1,230 @@
+# Cave Dig – alle Einstellungen an einem Ort.
+# Einrückung mit Leerzeichen. Nach dem Speichern das Spiel neu starten.
+# Farben sind Rot, Grün, Blau von 0 bis 255.
+
+game:
+  title: "Cave Dig"
+  # Innere Zeichenfläche. 540x960 ist 9:16 und wird auf das Fenster hochskaliert.
+  logical_width: 540
+  logical_height: 960
+  # Fenster, das OBS aufnimmt. 1080x1920 passt auf eine vertikale Leinwand.
+  window_width: 1080
+  window_height: 1920
+  fps: 60
+  columns: 12
+  wall_columns: 1
+  sky_rows: 4
+  # Alle N Reihen eine Barriere aus Urgestein mit einer Lücke.
+  shelf_every: 16
+  shelf_gap: 3
+  # 0 = jede Runde eine neue Höhle. Eine feste Zahl wiederholt dieselbe Höhle.
+  world_seed: 0
+  hint_seconds: 3.2
+  show_status: true
+  round_end_pause: 4
+  languages_file: "languages.yaml"
+  save_path: "data/stand.json"
+  log_dir: "logs"
+  # Sprache der Anzeigen im Fenster. en oder de. Weitere Dateien: locales/.
+  # Die Chat-Wörter (links, left, gauche, …) stehen getrennt in languages.yaml.
+  language: en
+  locales_dir: locales
+
+vote:
+  # So lange werden Chat-Nachrichten gesammelt, dann zählt die Mehrheit.
+  window_seconds: 2.5
+  # Jede Person zählt pro Fenster nur einmal.
+  one_per_user: true
+  # Wie stark die Mehrheit die Spitzhacke zur Seite schiebt.
+  nudge_speed: 280
+  # Nur für deine Tastatur beim Testen, nicht für den Chat.
+  local_steer: 460
+  local_voter_name: "Local"
+
+physics:
+  gravity: 860
+  max_fall: 380
+  # 0 = kein Abprallen, 1 = voller Abprall.
+  restitution: 0.42
+  horizontal_drag: 1.15
+  max_horizontal_speed: 460
+  # Mindestabstand zwischen zwei Treffern auf demselben Block, in Sekunden.
+  hit_cooldown: 0.18
+  pickaxe_radius: 11
+
+integrity:
+  maximum: 100
+  # Ständiger kleiner Verlust, damit eine Runde irgendwann endet.
+  passive_drain: 0.45
+  regen_per_second: 2.4
+  regen_min_speed: 90
+  chip_damage: 0.28
+  bedrock_damage: 5
+  explosion_damage: 26
+  explosion_radius: 2.15
+  cave_in_damage: 12
+  stuck_seconds: 14
+
+score:
+  # Pro Meter Tiefe ein kleines Plus, gedeckelt.
+  depth_bonus_per_meter: 0.002
+  depth_bonus_cap: 3
+
+events:
+  enabled: true
+  cooldown_seconds: 40
+  command: "!event"
+  random_min_seconds: 55
+  random_max_seconds: 95
+  random_chance: 0.7
+  ids:
+    - cave_in
+    - darkness
+    - explosion
+    - ore_vein
+  durations:
+    cave_in: 5
+    darkness: 8
+    explosion: 3.5
+    ore_vein: 4.5
+  # Was nach !event stehen darf. Links der Chat-Text, rechts die interne Id.
+  aliases:
+    cavein: cave_in
+    cave_in: cave_in
+    einsturz: cave_in
+    darkness: darkness
+    dunkel: darkness
+    dunkelheit: darkness
+    explosion: explosion
+    sprengung: explosion
+    vein: ore_vein
+    ader: ore_vein
+    erzader: ore_vein
+    erz: ore_vein
+
+colors:
+  background_top: [24, 18, 26]
+  background_deep: [6, 8, 12]
+  text: [236, 228, 210]
+  muted: [176, 164, 146]
+  left: [232, 164, 70]
+  right: [72, 198, 188]
+  accent: [214, 176, 96]
+  danger: [214, 86, 64]
+  good: [118, 198, 124]
+
+chat:
+  # simulator = Tastatur und Bots, ohne Internet.
+  # youtube   = echter Live-Chat (Zugangsdaten in .env).
+  # twitch    = Platzhalter, noch ohne Verbindung.
+  provider: simulator
+  simulator:
+    bot_enabled: true
+    bot_interval_min: 0.28
+    bot_interval_max: 0.8
+    # 0.5 = beide Seiten gleich oft. Über 0.5 üben die Bots eher links.
+    bot_bias_left: 0.5
+  youtube:
+    # api_key: du trägst Video-ID und Schlüssel ein.
+    # oauth:   das Spiel sucht deinen laufenden Livestream selbst.
+    mode: api_key
+    api_key: ""
+    video_id: ""
+    # 50 Sekunden halten einen 24/7-Stream unter dem YouTube-Tageslimit.
+    # Siehe README, Abschnitt Kontingent. Kleiner nur, wenn du das Limit kennst.
+    min_poll_seconds: 50
+    client_secrets: "client_secret.json"
+    token_path: "tokens/youtube_token.json"
+  twitch:
+    channel: ""
+
+# Blöcke. hits = Treffer bis der Block weg ist. points = Grundpunkte.
+# Muster: speckles, pebbles, cracks, ore, crystals, veins, charge.
+# Ein neuer Block braucht einen Eintrag hier UND ein Gewicht weiter unten.
+blocks:
+  dirt:
+    name: "Erde"
+    hits: 1
+    points: 10
+    color: [142, 92, 52]
+    accent: [88, 56, 32]
+    pattern: speckles
+  gravel:
+    name: "Kies"
+    hits: 1
+    points: 14
+    color: [122, 116, 106]
+    accent: [170, 162, 148]
+    pattern: pebbles
+  stone:
+    name: "Stein"
+    hits: 2
+    points: 22
+    color: [74, 96, 108]
+    accent: [46, 60, 70]
+    pattern: cracks
+  coal:
+    name: "Kohle"
+    hits: 2
+    points: 55
+    color: [62, 66, 70]
+    accent: [16, 16, 18]
+    pattern: ore
+  iron:
+    name: "Eisen"
+    hits: 3
+    points: 130
+    color: [104, 92, 74]
+    accent: [196, 102, 54]
+    pattern: ore
+  gold:
+    name: "Gold"
+    hits: 3
+    points: 280
+    color: [108, 90, 58]
+    accent: [228, 184, 72]
+    pattern: ore
+  gem:
+    name: "Kristall"
+    hits: 4
+    points: 800
+    color: [22, 78, 84]
+    accent: [64, 224, 198]
+    pattern: crystals
+  charge:
+    name: "Sprengsatz"
+    hits: 1
+    points: 40
+    color: [48, 40, 36]
+    accent: [226, 112, 46]
+    pattern: charge
+    explosive: true
+  bedrock:
+    name: "Urgestein"
+    hits: 1
+    points: 0
+    color: [24, 20, 32]
+    accent: [104, 70, 128]
+    pattern: veins
+    unbreakable: true
+
+# Je tiefer, desto anderes Gestein. until_row ist die erste Reihe, die NICHT
+# mehr zu diesem Band gehört. air ist eine Lücke, charge ist der Sprengsatz.
+generation:
+  bands:
+    - until_row: 36
+      vein_chance: 0.18
+      fill: {dirt: 38, gravel: 18, stone: 32, coal: 7, air: 5}
+      veins: {coal: 75, iron: 25}
+    - until_row: 90
+      vein_chance: 0.26
+      fill: {dirt: 8, gravel: 10, stone: 52, coal: 10, iron: 8, air: 8, charge: 4}
+      veins: {coal: 20, iron: 55, gold: 25}
+    - until_row: 180
+      vein_chance: 0.3
+      fill: {stone: 58, gravel: 6, iron: 8, gold: 6, coal: 4, air: 12, charge: 6}
+      veins: {iron: 25, gold: 40, gem: 35}
+    - until_row: 1000000000
+      vein_chance: 0.34
+      fill: {stone: 50, gold: 8, gem: 8, air: 14, charge: 8, gravel: 6, bedrock: 6}
+      veins: {gold: 30, gem: 70}

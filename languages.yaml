@@ -1,0 +1,158 @@
+# Richtungswörter für den Chat.
+# Niederländisch ist schon dabei: dort heißt es wie im Deutschen links/rechts.
+# Dänisch "venstre" teilt sich den Eintrag mit dem Norwegischen.
+#
+# So fügst du eine Sprache hinzu:
+#   1. Unter left oder right einen Eintrag ergänzen.
+#   2. "word" ist das Wort, das der Zuschauer schreibt.
+#   3. "lang" ist nur eine Notiz für dich (de, en, fr, ...).
+#   4. Spiel neu starten. Die Tests prüfen, dass jedes Wort noch
+#      auf genau eine Richtung zeigt.
+#
+# Groß/Klein und viele Akzente sind egal: "LINKS", "links" und "vänster"
+# werden vor dem Vergleich vereinheitlicht.
+#
+# whole_message: true
+#   Kurze, mehrdeutige Kürzel zählen nur, wenn die GANZE Nachricht
+#   genau dieses Kürzel ist. "l" lenkt also nach links, "hallo l" nicht.
+#   So wird aus "brilliant" nicht aus Versehen "r" oder "right".
+#
+# Ohne whole_message zählt das Wort, wenn es als eigenes Wort vorkommt.
+# "go left now" zählt. "leftover" zählt nicht.
+#
+# Chinesisch, Japanisch (Kanji): ein einzelnes Zeichen wie 左 zählt,
+# wenn die ganze Nachricht dieses Zeichen ist oder es als eigenes
+# Stück zwischen Leerzeichen steht. In "今日は左" steckt 左 in einem
+# längeren Wort und zählt absichtlich NICHT.
+
+hints:
+  # Kurze Wörter, die unten im Bild der Reihe nach erscheinen.
+  - links
+  - left
+  - gauche
+  - izquierda
+  - esquerda
+  - sinistra
+  - lewo
+  - sol
+  - "лево"
+  - "ліво"
+  - vänster
+  - venstre
+  - vasen
+  - vlevo
+  - stânga
+  - "αριστερά"
+  - "يسار"
+  - "बाएँ"
+  - "左"
+  - "ひだり"
+  - "왼쪽"
+  - kiri
+  - trái
+  - "ซ้าย"
+  - "←"
+
+# Diese Zeichen zählen auch mitten im Text als eigene Markierung,
+# zum Beispiel "go →". "<" und ">" stehen hier nicht: die sind
+# zu häufig ("<3") und gelten nur als ganze Nachricht, siehe unten.
+symbols:
+  left:
+    - "←"
+    - "⬅"
+    - "⬅️"
+    - "👈"
+    - "◀"
+    - "◄"
+  right:
+    - "→"
+    - "➡"
+    - "➡️"
+    - "👉"
+    - "▶"
+    - "►"
+
+# "<" und ">" nur, wenn die Nachricht aus nichts anderem besteht.
+# ">>>" zählt trotzdem, "<3" nicht.
+whole_message_symbols:
+  left: ["<", "‹"]
+  right: [">", "›"]
+
+left:
+  - {word: links, lang: de}
+  - {word: li, lang: de, whole_message: true}
+  - {word: l, lang: en, whole_message: true}
+  - {word: left, lang: en}
+  - {word: gauche, lang: fr}
+  - {word: sinistra, lang: it}
+  - {word: izquierda, lang: es}
+  - {word: esquerda, lang: pt}
+  - {word: lewo, lang: pl}
+  - {word: sol, lang: tr}
+  - {word: "лево", lang: ru}
+  - {word: "налево", lang: ru}
+  - {word: "влево", lang: ru}
+  - {word: "ліво", lang: uk}
+  - {word: "наліво", lang: uk}
+  - {word: "вліво", lang: uk}
+  - {word: "ліворуч", lang: uk}
+  - {word: vänster, lang: sv}
+  - {word: venstre, lang: "no"}
+  - {word: vasen, lang: fi}
+  - {word: vlevo, lang: cs}
+  - {word: doleva, lang: cs}
+  - {word: stânga, lang: ro}
+  - {word: "αριστερά", lang: el}
+  - {word: "يسار", lang: ar}
+  - {word: "بایں", lang: ur}
+  - {word: "बाएँ", lang: hi}
+  - {word: "बाएं", lang: hi}
+  - {word: "बायें", lang: hi}
+  - {word: "बाईं", lang: hi}
+  - {word: "左", lang: "zh"}
+  - {word: "ひだり", lang: ja}
+  - {word: "ヒダリ", lang: ja}
+  - {word: "왼쪽", lang: ko}
+  - {word: kiri, lang: id}
+  - {word: trái, lang: vi}
+  - {word: "ซ้าย", lang: th}
+
+right:
+  - {word: rechts, lang: de}
+  - {word: re, lang: de, whole_message: true}
+  - {word: r, lang: en, whole_message: true}
+  - {word: right, lang: en}
+  - {word: droite, lang: fr}
+  - {word: destra, lang: it}
+  - {word: derecha, lang: es}
+  - {word: direita, lang: pt}
+  - {word: prawo, lang: pl}
+  - {word: "sağ", lang: tr}
+  - {word: sag, lang: tr}
+  - {word: "право", lang: ru}
+  - {word: "направо", lang: ru}
+  - {word: "вправо", lang: ru}
+  - {word: "направо", lang: uk}
+  - {word: "вправо", lang: uk}
+  - {word: "праворуч", lang: uk}
+  - {word: höger, lang: sv}
+  - {word: høyre, lang: "no"}
+  - {word: højre, lang: da}
+  - {word: oikea, lang: fi}
+  - {word: vpravo, lang: cs}
+  - {word: doprava, lang: cs}
+  - {word: dreapta, lang: ro}
+  - {word: "δεξιά", lang: el}
+  - {word: "يمين", lang: ar}
+  - {word: "دائیں", lang: ur}
+  - {word: "दाएँ", lang: hi}
+  - {word: "दाएं", lang: hi}
+  - {word: "दायें", lang: hi}
+  - {word: "दाईं", lang: hi}
+  - {word: "右", lang: "zh"}
+  - {word: "みぎ", lang: ja}
+  - {word: "ミギ", lang: ja}
+  - {word: "오른쪽", lang: ko}
+  - {word: kanan, lang: id}
+  - {word: phải, lang: vi}
+  - {word: "ขวา", lang: th}

@@ -1,0 +1,49 @@
+# Texte im Fenster. Die Schlüssel müssen zu locales/en.yaml passen.
+# Eine weitere Sprache: en.yaml kopieren, Werte übersetzen, Schlüssel
+# lassen, in config.yaml game.language auf den Dateinamen setzen.
+# Platzhalter in {geschweiften Klammern} bleiben stehen.
+
+hud:
+  round: "Runde {n}"
+  depth: "Tiefe"
+  score: "Punkte"
+  meters: "{n} m"
+  record: "Rekord {score}   Beste Tiefe {depth} m"
+  pickaxe: "Spitzhacke"
+  votes_left: "{count} links"
+  votes_right: "{count} rechts"
+  hint: "Chat: {hint}"
+  hint_fallback: "Chat: links / left / gauche"
+  miners: "Gräber"
+  points_votes: "Punkte   Stimmen"
+  empty: "Noch keine Stimmen in dieser Höhle."
+  unknown: "Unbekannt"
+
+round:
+  over: "Runde vorbei"
+  broken: "Die Spitzhacke ist zerbrochen."
+  stuck: "Im Gestein festgesteckt."
+  score: "{score} Punkte"
+  depth: "Tiefe {depth} m"
+  next: "Nächste Runde startet gleich."
+
+events:
+  cave_in: "Einsturz"
+  darkness: "Dunkelheit"
+  explosion: "Sprengung"
+  ore_vein: "Erzader"
+
+status:
+  simulator: "Test: Pfeile lenken, Leertaste Ereignis, Esc Ende"
+  twitch: "Twitch ist noch ein Platzhalter ohne Verbindung."
+  quota: "YouTube-Tageslimit voll. Pause, danach neuer Versuch."
+  rate: "YouTube bremst gerade. Kurze Pause."
+  ended: "Kein aktiver Live-Chat. Warte auf den Stream."
+  not_found: "Live-Chat nicht gefunden. Video-ID prüfen."
+  auth: "YouTube lehnt den Zugriff ab. Schlüssel oder Anmeldung prüfen."
+  forbidden: "YouTube verweigert den Zugriff. Ist die Data API v3 an?"
+  other: "YouTube gerade nicht erreichbar. Neuer Versuch."
+  missing: "YouTube: API-Key oder Video-ID fehlt. Steht in der .env."
+  oauth_missing: "YouTube: erst python -m cave_dig.auth ausführen."
+  ready: "YouTube-Chat verbunden."
+  connecting: "YouTube: suche den Live-Chat…"

@@ -1,0 +1,24 @@
+# Geheimnisse und lokale Anmeldungen. Niemals ins Repository legen.
+.env
+client_secret.json
+tokens/*.json
+
+# Laufzeitdaten
+logs/*.log
+logs/*.log.*
+data/*.json
+data/*.tmp
+screenshots/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+.mypy_cache/
+
+# Betriebssystem
+.DS_Store
+Thumbs.db

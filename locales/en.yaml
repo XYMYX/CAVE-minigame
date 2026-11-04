@@ -1,0 +1,49 @@
+# On-screen text. Keys must match locales/de.yaml.
+# To add a language: copy this file to locales/fr.yaml, translate the
+# values, keep the keys, then set game.language: fr in config.yaml.
+# Placeholders in {braces} stay as they are.
+
+hud:
+  round: "Round {n}"
+  depth: "Depth"
+  score: "Score"
+  meters: "{n} m"
+  record: "Record {score}   Best depth {depth} m"
+  pickaxe: "Pickaxe"
+  votes_left: "{count} left"
+  votes_right: "{count} right"
+  hint: "Chat: {hint}"
+  hint_fallback: "Chat: left / links / gauche"
+  miners: "Diggers"
+  points_votes: "Points   Votes"
+  empty: "No votes in this cave yet."
+  unknown: "Unknown"
+
+round:
+  over: "Round over"
+  broken: "The pickaxe broke."
+  stuck: "Stuck in the rock."
+  score: "{score} points"
+  depth: "Depth {depth} m"
+  next: "The next round starts in a moment."
+
+events:
+  cave_in: "Cave-in"
+  darkness: "Darkness"
+  explosion: "Blast"
+  ore_vein: "Ore vein"
+
+status:
+  simulator: "Test: arrows steer, Space event, Esc quits"
+  twitch: "Twitch is still a stub and does not connect."
+  quota: "YouTube daily quota is full. Pausing, then retrying."
+  rate: "YouTube is throttling. Short pause."
+  ended: "No active live chat. Waiting for the stream."
+  not_found: "Live chat not found. Check the video id."
+  auth: "YouTube refused access. Check the key or sign-in."
+  forbidden: "YouTube refused access. Is Data API v3 enabled?"
+  other: "YouTube is unreachable. Retrying."
+  missing: "YouTube: API key or video id missing. See .env."
+  oauth_missing: "YouTube: run python -m cave_dig.auth first."
+  ready: "YouTube chat connected."
+  connecting: "YouTube: looking for the live chat…"

@@ -1,0 +1,95 @@
+"""Die Runde rechnet ohne Fenster: fallen, punkten, neu starten, speichern."""
+
+from pathlib import Path
+
+from cave_dig.chat.base import ChatMessage
+from cave_dig.config import load_config
+from cave_dig.game import Game
+from cave_dig.languages import load_languages
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _game(tmp_path, seed=4):
+    config = load_config(ROOT / "config.yaml")
+    languages = load_languages(ROOT / "languages.yaml")
+    # Eigene Speicherdatei, damit der Test nicht den echten Stand anfasst.
+    from dataclasses import replace
+
+    config = replace(config, save_path=tmp_path / "stand.json")
+    return Game(config, languages, seed=seed)
+
+
+def test_pickaxe_descends_and_scores(tmp_path):
+    game = _game(tmp_path)
+    start = game.pickaxe.y
+    game.handle_messages(
+        [
+            ChatMessage("Nora", "links"),
+            ChatMessage("Kenji", "left"),
+            ChatMessage("Omar", "gauche"),
+            ChatMessage("Lina", "rechts"),
+        ]
+    )
+    for _ in range(240):
+        game.update(1 / 60)
+    assert game.pickaxe.y > start + 120
+    assert game.scoreboard.round_score > 0 or game.phase == "ended"
+    assert game.max_depth > 0
+
+
+def test_closed_window_nudges_and_credits(tmp_path):
+    game = _game(tmp_path, seed=8)
+    game.pickaxe.vx = 0
+    game.pending_points = 100
+    game.handle_messages([ChatMessage("Nora", "rechts"), ChatMessage("Kenji", "right")])
+    # Das Fenster ist 2,5 s. update deckelt einen Schritt auf 0,05 s,
+    # darum hier direkt auszählen, wie es die Spielschleife nach der Zeit tut.
+    for result in game.votes.close_due(game.time + 2.5):
+        game._apply_votes(result)
+    assert game.pickaxe.vx > 0
+    assert game.scoreboard.contributors["Nora"].points > 0
+    assert game.scoreboard.contributors["Kenji"].votes == 1
+
+
+def test_round_restarts_and_saves(tmp_path):
+    game = _game(tmp_path, seed=9)
+    for _ in range(90):
+        game.update(1 / 60)
+    game.pickaxe.integrity = -1000
+    game.update(1 / 60)
+    assert game.phase == "ended"
+    assert game.end_reason
+    assert (tmp_path / "stand.json").exists()
+    # Pause abwarten. update deckelt dt, darum viele kleine Schritte.
+    steps = int(game.config.round_end_pause / (1 / 60)) + 5
+    for _ in range(steps):
+        game.update(1 / 60)
+    assert game.phase == "play"
+    assert game.round_index == 2
+
+
+def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
+    game = _game(tmp_path, seed=2)
+    game.handle_messages(
+        [
+            ChatMessage("Nora", ""),
+            ChatMessage("", "left"),
+            ChatMessage("Omar", "!event gibt_es_nicht"),
+            ChatMessage("Lina", "今日は左へ行くよ"),
+            ChatMessage("Kenji", "<<<"),
+        ]
+    )
+    game.update(1 / 60)
+    assert game.phase == "play"
+
+
+def test_event_command_respects_cooldown(tmp_path):
+    game = _game(tmp_path, seed=2)
+    assert game.start_event("darkness", force=True) is True
+    assert game.event is not None
+    assert game.event_title() == "Darkness"
+    game.update(1 / 60)
+    assert game.light_scale() < 1
+    game.handle_messages([ChatMessage("Nora", "!event einsturz")])
+    assert game.event.id == "darkness"
