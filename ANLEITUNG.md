@@ -18,6 +18,8 @@ Es muss ein Hochformat-Fenster aufgehen, die Spitzhacke fällt, unten stehen erf
 
 Pfeil links und rechts lenken zum Probieren. Esc beendet und speichert.
 
+Stürzt das Spiel ab, startet das Skript es nach 10 Sekunden neu. Bei einer falschen `config.yaml` bleibt es stehen und zeigt die Meldung, denn da hilft kein Neustart. Der Grund eines Absturzes steht in `logs/cave_dig.log`.
+
 ## 2. YouTube-Schlüssel (einmalig)
 
 1. [Google Cloud Console](https://console.cloud.google.com/) → neues Projekt.

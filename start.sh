@@ -19,4 +19,14 @@ if [[ ! -x .venv/bin/python ]]; then
   .venv/bin/python -m pip install -r requirements.txt
 fi
 
-exec .venv/bin/python -m cave_dig "$@"
+# Ein Absturz soll den Dauerstream nicht beenden: nach 10 Sekunden neu starten.
+# Code 0 ist ein normales Ende. Code 3 ist eine falsche Konfiguration.
+while true; do
+  code=0
+  .venv/bin/python -m cave_dig "$@" || code=$?
+  if [[ $code -eq 0 || $code -eq 3 ]]; then
+    exit "$code"
+  fi
+  echo "Spiel beendet mit Code $code. Neustart in 10 Sekunden. Abbrechen: Strg+C."
+  sleep 10
+done

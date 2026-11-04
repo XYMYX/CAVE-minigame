@@ -46,6 +46,10 @@ from cave_dig.textures import TextureAtlas
 
 log = logging.getLogger("cave_dig.app")
 
+# start.bat und start.sh starten das Spiel nach einem Absturz neu.
+# Bei diesem Code nicht: eine falsche Konfiguration heilt kein Neustart.
+EXIT_BAD_CONFIG = 3
+
 
 def main(argv: list[str] | None = None) -> int:
     args = _parse_args(argv)
@@ -57,7 +61,7 @@ def main(argv: list[str] | None = None) -> int:
         languages = load_languages(config.languages_file)
     except (ConfigError, LanguageError) as exc:
         print(exc)
-        return 1
+        return EXIT_BAD_CONFIG
 
     setup_logging(config.log_dir)
     if args.provider:
@@ -161,6 +165,10 @@ def main(argv: list[str] | None = None) -> int:
                     if average < config.fps - 5:
                         log.warning("Bildrate im Schnitt %.1f, Ziel %s.", average, config.fps)
                     fps_samples.clear()
+    except Exception:
+        # Sonst stünde der Grund nur in der Konsole und nicht in der Logdatei.
+        log.exception("Spiel abgestürzt.")
+        raise
     finally:
         provider.stop()
         game.save()

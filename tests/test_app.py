@@ -52,6 +52,12 @@ def test_name_with_invisible_character_survives_and_restarts(tmp_path, monkeypat
     assert _run(tmp_path, monkeypatch) == 0
 
 
+def test_bad_config_uses_the_exit_code_without_restart(tmp_path):
+    path = tmp_path / "config.yaml"
+    path.write_text("game: [", encoding="utf-8")
+    assert app.main(["--headless", "--config", str(path)]) == app.EXIT_BAD_CONFIG
+
+
 def test_a_broken_frame_does_not_stop_the_stream(tmp_path, monkeypatch):
     def broken(self, target, game):
         raise RuntimeError("Testfehler beim Zeichnen")

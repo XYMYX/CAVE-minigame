@@ -20,9 +20,17 @@ if not exist ".venv\Scripts\python.exe" (
   if errorlevel 1 goto :fehler
 )
 
+REM Ein Absturz soll den Dauerstream nicht beenden: nach 10 Sekunden neu starten.
+REM Code 0 ist ein normales Ende. Code 3 ist eine falsche Konfiguration, da hilft kein Neustart.
+:spielen
 ".venv\Scripts\python.exe" -m cave_dig %*
-if errorlevel 1 goto :fehler
-exit /b 0
+set "CODE=%errorlevel%"
+if "%CODE%"=="0" exit /b 0
+if "%CODE%"=="3" goto :fehler
+echo.
+echo Spiel beendet mit Code %CODE%. Neustart in 10 Sekunden. Abbrechen: dieses Fenster schliessen.
+ping -n 11 127.0.0.1 >nul
+goto :spielen
 
 :fehler
 echo.
