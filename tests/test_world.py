@@ -39,6 +39,16 @@ def test_shelf_has_a_gap_and_bedrock_walls():
     assert sum(1 for kind in middle if kind != "bedrock") == gap
 
 
+def test_discarded_rows_stay_gone():
+    config = load_config(ROOT / "config.yaml")
+    world = World(config, seed=2)
+    world.ensure_through(630)
+    world.discard_above(500)
+    world.ensure_through(630)
+    assert len(world.generated_rows) == 131
+    assert min(world.generated_rows) == 500
+
+
 def test_dirt_breaks_and_bedrock_does_not():
     config = load_config(ROOT / "config.yaml")
     world = World(config, seed=1)

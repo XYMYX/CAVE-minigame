@@ -55,14 +55,17 @@ class World:
         self.cells: dict[tuple[int, int], Block] = {}
         self.generated_rows: set[int] = set()
         self.last_hit: dict[tuple[int, int], float] = {}
+        # Reihen darüber sind vergessen und werden nicht wieder aufgebaut.
+        self.first_kept_row = 0
 
     def ensure_through(self, row: int) -> None:
-        for current in range(0, max(0, row) + 1):
+        for current in range(self.first_kept_row, max(0, row) + 1):
             if current not in self.generated_rows:
                 self._generate_row(current)
 
     def discard_above(self, row: int) -> None:
         """Gibt Reihen frei, die niemand mehr sieht. Speicher bleibt flach."""
+        self.first_kept_row = max(self.first_kept_row, row)
         stale = [existing for existing in self.generated_rows if existing < row]
         for existing in stale:
             for col in range(self.cols):
