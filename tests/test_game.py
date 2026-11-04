@@ -85,6 +85,28 @@ def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
     assert game.phase == "play"
 
 
+def test_chat_during_the_round_pause_counts_in_the_next_round(tmp_path):
+    game = _game(tmp_path, seed=9)
+    game.pickaxe.integrity = -1000
+    game.update(1 / 60)
+    assert game.phase == "ended"
+    game.handle_messages([ChatMessage("Nora", "links")])
+    assert game.votes.left == 0
+    for _ in range(int(game.config.round_end_pause * 60) + 5):
+        game.update(1 / 60)
+    assert game.round_index == 2
+    assert game.votes.left == 1
+    assert game.held_messages == []
+
+
+def test_held_messages_are_limited(tmp_path):
+    game = _game(tmp_path, seed=9)
+    game.phase = "ended"
+    game.handle_messages([ChatMessage(f"u{n}", "links") for n in range(1000)])
+    assert len(game.held_messages) == 400
+    assert game.held_messages[-1].author == "u999"
+
+
 def test_ore_vein_keeps_bedrock_shelves(tmp_path):
     for seed in range(1, 21):
         game = _game(tmp_path, seed=seed)

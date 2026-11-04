@@ -31,6 +31,9 @@ from cave_dig.world import Destroyed, HitResult, World
 
 log = logging.getLogger("cave_dig.game")
 
+# Mehr Nachrichten heben wir für die nächste Runde nicht auf.
+MAX_HELD_MESSAGES = 400
+
 
 @dataclass
 class ChatLine:
@@ -102,6 +105,7 @@ class Game:
         self.progress_mark = 0.0
         self.last_jolt = -100.0
         self.last_save = 0.0
+        self.held_messages: list[ChatLine] = []
         chosen = config.world_seed if seed is None else seed
         self._seed_base = chosen
         self.rng = random.Random(1)
@@ -148,8 +152,14 @@ class Game:
         log.info("Runde %s beginnt (Seed %s).", self.round_index, round_seed)
 
     def handle_messages(self, messages: list[ChatLine]) -> None:
-        """Chat darf das Spiel nicht abschießen. Jede Zeile ist in try verpackt."""
+        """Chat darf das Spiel nicht abschießen. Jede Zeile ist in try verpackt.
+
+        In der Rundenpause heben wir Nachrichten auf. Der Anbieter gibt jede
+        Nachricht nur einmal her, und YouTube liefert sie selten.
+        """
         if self.phase != "play":
+            self.held_messages.extend(messages)
+            del self.held_messages[:-MAX_HELD_MESSAGES]
             return
         for message in messages:
             try:
@@ -180,6 +190,8 @@ class Game:
             self._update_particles(dt)
             if self.phase_time >= self.config.round_end_pause:
                 self.start_round()
+                held, self.held_messages = self.held_messages, []
+                self.handle_messages(held)
             return
 
         for result in self.votes.close_due(self.time):
