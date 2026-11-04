@@ -15,9 +15,15 @@ if errorlevel 1 (
 if not exist ".venv\Scripts\python.exe" (
   %PY% -m venv .venv
   if errorlevel 1 goto :fehler
+)
+
+REM Die Merkdatei entsteht erst nach einer erfolgreichen Installation.
+REM So holt der naechste Start eine abgebrochene Installation nach.
+if not exist ".venv\installiert.txt" (
   ".venv\Scripts\python.exe" -m pip install --upgrade pip
   ".venv\Scripts\python.exe" -m pip install -r requirements.txt
   if errorlevel 1 goto :fehler
+  echo ok> ".venv\installiert.txt"
 )
 
 REM Ein Absturz soll den Dauerstream nicht beenden: nach 10 Sekunden neu starten.
