@@ -35,6 +35,28 @@ def test_broken_save_file_is_set_aside_not_a_crash(tmp_path, content):
     assert (tmp_path / "stand.broken.json").read_bytes() == content
 
 
+def test_ids_survive_saving_and_old_files_still_load(tmp_path):
+    board = Scoreboard()
+    board.add_contributor_points("youtube:UC1", 7, "Max")
+    board.add_contributor_points("youtube:UC2", 9, "Max")
+    path = tmp_path / "stand.json"
+    save_scoreboard(path, board)
+    loaded = load_scoreboard(path)
+    assert sorted(loaded.contributors) == ["youtube:UC1", "youtube:UC2"]
+    assert loaded.contributors["youtube:UC2"].name == "Max"
+
+    path.write_text(json.dumps({"contributors": [{"name": "Nora", "points": 3}]}), encoding="utf-8")
+    assert load_scoreboard(path).contributors["Nora"].points == 3
+
+
+def test_prune_keeps_ids(tmp_path):
+    board = Scoreboard()
+    for number in range(5):
+        board.add_contributor_points(f"youtube:UC{number}", number + 1, "Max")
+    board.prune(limit=2)
+    assert sorted(board.contributors) == ["youtube:UC3", "youtube:UC4"]
+
+
 def test_depth_bonus_is_capped():
     assert points_at_depth(100, 0, 0.002, 3) == 100
     assert points_at_depth(100, 500, 0.002, 3) == 200

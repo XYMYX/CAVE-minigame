@@ -17,7 +17,7 @@ def test_parse_payload_skips_broken_items():
                     "displayMessage": "links",
                     "publishedAt": "2026-10-21T00:00:00Z",
                 },
-                "authorDetails": {"displayName": "Nora"},
+                "authorDetails": {"displayName": "Nora", "channelId": "UC123"},
             },
             {"broken": True},
             "kein dict",
@@ -28,6 +28,7 @@ def test_parse_payload_skips_broken_items():
     assert wait == 8
     assert len(messages) == 1
     assert messages[0].author == "Nora"
+    assert messages[0].author_id == "youtube:UC123"
     assert messages[0].text == "links"
     assert messages[0].sent_at > 0
 

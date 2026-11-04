@@ -74,9 +74,18 @@ def parse_live_chat_payload(
             snippet = item.get("snippet") or {}
             if "displayMessage" not in snippet:
                 continue
-            author = (item.get("authorDetails") or {}).get("displayName") or ""
+            details = item.get("authorDetails") or {}
+            author = details.get("displayName") or ""
+            channel = details.get("channelId")
             text = snippet.get("displayMessage")
-            messages.append(ChatMessage(str(author), str(text), _published(snippet.get("publishedAt"))))
+            messages.append(
+                ChatMessage(
+                    str(author),
+                    str(text),
+                    _published(snippet.get("publishedAt")),
+                    f"youtube:{channel}" if channel else "",
+                )
+            )
         except Exception:
             log.info("Eine Chat-Zeile war unlesbar und wird übersprungen.")
     token = payload.get("nextPageToken")

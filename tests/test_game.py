@@ -84,6 +84,30 @@ def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
     assert game.phase == "play"
 
 
+def test_same_name_different_people_are_counted_apart(tmp_path):
+    game = _game(tmp_path, seed=8)
+    game.handle_messages(
+        [
+            ChatMessage("Max", "links", author_id="youtube:UC1"),
+            ChatMessage("Max", "links", author_id="youtube:UC2"),
+        ]
+    )
+    assert game.votes.left == 2
+
+
+def test_renamed_person_keeps_points(tmp_path):
+    game = _game(tmp_path, seed=8)
+    game.pending_points = 100
+    game.handle_messages([ChatMessage("Alt", "links", author_id="youtube:UC1")])
+    for result in game.votes.close_due(game.time + 2.5):
+        game._apply_votes(result)
+    game.handle_messages([ChatMessage("Neu", "links", author_id="youtube:UC1")])
+    for result in game.votes.close_due(game.time + 5):
+        game._apply_votes(result)
+    entry = game.scoreboard.contributors["youtube:UC1"]
+    assert (entry.name, entry.points, entry.votes) == ("Neu", 100, 2)
+
+
 def test_one_person_cannot_trigger_every_event(tmp_path):
     game = _game(tmp_path, seed=2)
     game.handle_messages([ChatMessage("Nora", "!event dunkel")])

@@ -16,6 +16,8 @@ class ChatMessage:
     author: str
     text: str
     sent_at: float = 0.0
+    # Feste Kennung vom Anbieter. Anzeigenamen sind nicht eindeutig.
+    author_id: str = ""
 
 
 class ChatProvider(ABC):

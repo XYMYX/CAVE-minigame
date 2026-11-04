@@ -44,6 +44,7 @@ class ChatLine:
     author: str
     text: str
     sent_at: float = 0.0
+    author_id: str = ""
 
 
 @dataclass
@@ -99,6 +100,7 @@ class Game:
         self.event: CaveEvent | None = None
         self.event_ready_at = 0.0
         self.event_user_ready: dict[str, float] = {}
+        self.voter_names: dict[str, str] = {}
         self.next_random_at = 0.0
         self.demo_event_done = False
         self.particles: list[Particle] = []
@@ -142,6 +144,7 @@ class Game:
         self.since_progress = 0.0
         self.progress_mark = self.pickaxe.y
         self.votes.reset(self.time)
+        self.voter_names.clear()
         self.particles.clear()
         self.floaters.clear()
         self.explosion_queue.clear()
@@ -305,6 +308,9 @@ class Game:
     def _handle_one(self, message: ChatLine) -> None:
         text = message.text if isinstance(message.text, str) else ""
         author = sanitize_name(message.author, self.catalog.t("hud.unknown"))
+        # Die Kennung zählt die Person, der Name steht nur im Bild.
+        voter = message.author_id or author
+        self.voter_names[voter] = author
         command = parse_event_command(text, self.config.event_command, self.config.event_aliases)
         if command is not None:
             if command.unknown:
@@ -316,14 +322,14 @@ class Game:
                     author,
                 )
                 return
-            if self.time < self.event_user_ready.get(author, 0.0):
+            if self.time < self.event_user_ready.get(voter, 0.0):
                 log.debug("%s muss noch warten, bis wieder ein Ereignis geht.", author)
                 return
             started = self.start_event(command.event_id)
             if not started:
                 log.debug("Ereignis von %s liegt in der Abklingzeit oder läuft schon.", author)
                 return
-            self.event_user_ready[author] = self.time + self.config.event_user_cooldown
+            self.event_user_ready[voter] = self.time + self.config.event_user_cooldown
             if len(self.event_user_ready) > MAX_EVENT_USERS:
                 self.event_user_ready = {
                     name: ready for name, ready in self.event_user_ready.items() if ready > self.time
@@ -332,7 +338,7 @@ class Game:
         direction = self.languages.parse(text)
         if direction is None:
             return
-        self._cast_vote(author, direction)
+        self._cast_vote(voter, direction)
 
     def _cast_vote(self, author: str, direction: str) -> None:
         closed = self.votes.add(author, direction, self.time)
@@ -373,10 +379,10 @@ class Game:
     def _apply_votes(self, result: VoteResult) -> None:
         credited = result.credit_names()
         shares = split_points(self.pending_points, credited)
-        for name, points in shares.items():
-            self.scoreboard.add_contributor_points(name, points)
-        for name in result.all_voters():
-            self.scoreboard.add_vote(name)
+        for voter, points in shares.items():
+            self.scoreboard.add_contributor_points(voter, points, self.voter_names.get(voter))
+        for voter in result.all_voters():
+            self.scoreboard.add_vote(voter, self.voter_names.get(voter))
         # Ein leeres Fenster behält die Punkte für die nächsten Stimmen.
         # YouTube liefert nur alle 50 Sekunden, die meisten Fenster sind leer.
         if credited:

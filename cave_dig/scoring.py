@@ -60,15 +60,21 @@ class Scoreboard:
         if points > 0:
             self.round_score += points
 
-    def add_contributor_points(self, name: str, points: int) -> None:
+    def add_contributor_points(self, key: str, points: int, name: str | None = None) -> None:
+        """key zählt die Person (Kanal-Kennung oder Name), name steht im Bild."""
         if points <= 0:
             return
-        entry = self.contributors.setdefault(name, Contributor(name))
-        entry.points += points
+        self._entry(key, name).points += points
 
-    def add_vote(self, name: str) -> None:
-        entry = self.contributors.setdefault(name, Contributor(name))
-        entry.votes += 1
+    def add_vote(self, key: str, name: str | None = None) -> None:
+        self._entry(key, name).votes += 1
+
+    def _entry(self, key: str, name: str | None) -> Contributor:
+        entry = self.contributors.setdefault(key, Contributor(name or key))
+        # Wer sich umbenennt, behält die Punkte und zeigt den neuen Namen.
+        if name:
+            entry.name = name
+        return entry
 
     def finish_round(self, depth: int) -> None:
         """Rekord prüfen, Runde zählen, Rundenscore zurücksetzen.
@@ -93,8 +99,10 @@ class Scoreboard:
         """Ein Dauerstream sieht viele Namen. Wir behalten die besten."""
         if len(self.contributors) <= limit:
             return
-        kept = self.top(limit)
-        self.contributors = {entry.name: entry for entry in kept}
+        kept = {id(entry) for entry in self.top(limit)}
+        self.contributors = {
+            key: entry for key, entry in self.contributors.items() if id(entry) in kept
+        }
 
 
 def save_scoreboard(path: Path, board: Scoreboard) -> None:
@@ -110,8 +118,8 @@ def save_scoreboard(path: Path, board: Scoreboard) -> None:
         "best_depth": board.best_depth,
         "rounds_played": board.rounds_played,
         "contributors": [
-            {"name": entry.name, "points": entry.points, "votes": entry.votes}
-            for entry in board.contributors.values()
+            {"id": key, "name": entry.name, "points": entry.points, "votes": entry.votes}
+            for key, entry in board.contributors.items()
         ],
     }
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -160,7 +168,11 @@ def load_scoreboard(path: Path) -> Scoreboard:
             points=_nonneg_int(item.get("points")),
             votes=_nonneg_int(item.get("votes")),
         )
-        board.contributors[entry.name] = entry
+        # Ältere Speicherdateien haben kein "id". Dort ist der Name die Kennung.
+        key = item.get("id")
+        if not isinstance(key, str) or not key:
+            key = entry.name
+        board.contributors[key] = entry
     return board
 
 
