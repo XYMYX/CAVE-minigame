@@ -46,7 +46,9 @@ def _run(tmp_path, monkeypatch, author=None, frames=200):
 def test_name_with_invisible_character_survives_and_restarts(tmp_path, monkeypatch):
     name = "\U0001f579️ Max"
     assert _run(tmp_path, monkeypatch, name) == 0
-    saved = json.loads((tmp_path / "stand.json").read_text(encoding="utf-8"))
+    # Der Testlauf nutzt den Simulator und darf den echten Stand nicht berühren.
+    assert not (tmp_path / "stand.json").exists()
+    saved = json.loads((tmp_path / "stand.simulator.json").read_text(encoding="utf-8"))
     assert [entry["name"] for entry in saved["contributors"]] == [name]
     # Der Name steht jetzt im Stand und wird beim nächsten Start wieder gezeichnet.
     assert _run(tmp_path, monkeypatch) == 0

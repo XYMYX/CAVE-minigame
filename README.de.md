@@ -48,7 +48,7 @@ Im Testmodus schreiben Bots von allein Wörter wie `links`, `left` oder `左`. D
 
 Unten steht der Hinweis `Test: Pfeile lenken …`. Der Balken zeigt, wie viele Personen gerade links und rechts wollen. Alle 2,5 Sekunden gewinnt die Mehrheit und die Spitzhacke bekommt einen Schubs. Pro Fenster zählt jede Person nur einmal.
 
-Rekord, beste Tiefe und die Gräber-Liste landen in `data/stand.json`. Das Log liegt in `logs/cave_dig.log`. Beides bleibt über Tage liegen, die Logdatei wird bei 2 MB abgeschnitten.
+Rekord, beste Tiefe und die Gräber-Liste landen in `data/stand.json`. Der Testmodus mit Bots hat eine eigene Datei, `data/stand.simulator.json`, damit keine Bot-Namen in die echte Liste geraten. Das Log liegt in `logs/cave_dig.log`. Beides bleibt über Tage liegen, die Logdatei wird bei 2 MB abgeschnitten.
 
 ## Chat-Wörter
 

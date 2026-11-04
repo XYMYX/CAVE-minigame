@@ -48,7 +48,7 @@ In test mode, bots type words such as `links`, `left`, or `左`. You can steer t
 
 The line at the bottom says `Test: arrows steer …`. The bar shows how many people want left and how many want right. Every 2.5 seconds the majority wins and the pickaxe gets a nudge. Each person counts once per window.
 
-High score, best depth, and the digger list are stored in `data/stand.json`. The log is `logs/cave_dig.log`. Both survive for days. The log file rolls over at 2 MB.
+High score, best depth, and the digger list are stored in `data/stand.json`. Test mode with bots uses its own file, `data/stand.simulator.json`, so bot names never reach the real list. The log is `logs/cave_dig.log`. Both survive for days. The log file rolls over at 2 MB.
 
 ## Chat words
 

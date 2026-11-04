@@ -413,6 +413,11 @@ def load_config(path: Path | None = None) -> GameConfig:
         ) from exc
 
 
+def simulator_save_path(path: Path) -> Path:
+    """stand.json wird zu stand.simulator.json. Bots gehören nicht in die echte Liste."""
+    return path.with_name(f"{path.stem}.simulator{path.suffix}")
+
+
 def estimate_daily_chat_units(poll_seconds: float, cost_per_call: int = LIVE_CHAT_UNITS) -> int:
     """Grobe Rechnung: Aufrufe pro Tag mal Kosten pro Aufruf.
 

@@ -36,6 +36,7 @@ from cave_dig.config import (
     ConfigError,
     estimate_daily_chat_units,
     load_config,
+    simulator_save_path,
 )
 from cave_dig.fonts import FontBook
 from cave_dig.game import Game
@@ -95,6 +96,8 @@ def main(argv: list[str] | None = None) -> int:
     setup_logging(config.log_dir)
     if args.provider:
         config = replace(config, provider=args.provider)
+    if config.provider == "simulator":
+        config = replace(config, save_path=simulator_save_path(config.save_path))
     if config.provider == "youtube":
         units = estimate_daily_chat_units(config.youtube_min_poll_seconds)
         log.info(

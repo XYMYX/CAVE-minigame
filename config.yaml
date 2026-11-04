@@ -23,6 +23,7 @@ game:
   show_status: true
   round_end_pause: 4
   languages_file: "languages.yaml"
+  # Der Simulator speichert daneben in stand.simulator.json.
   save_path: "data/stand.json"
   log_dir: "logs"
   # Sprache der Anzeigen im Fenster. en oder de. Weitere Dateien: locales/.
