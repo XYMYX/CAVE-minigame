@@ -17,12 +17,13 @@ if [[ ! -x .venv/bin/python ]]; then
   python3 -m venv .venv
 fi
 
-# Die Merkdatei entsteht erst nach einer erfolgreichen Installation.
-# So holt der nächste Start eine abgebrochene Installation nach.
-if [[ ! -f .venv/installiert.txt ]]; then
+# Die Merkdatei ist eine Kopie von requirements.txt nach erfolgreicher Installation.
+# So holt der nächste Start eine abgebrochene Installation nach,
+# und neue Pakete kommen von selbst dazu.
+if ! cmp -s requirements.txt .venv/installiert.txt; then
   .venv/bin/python -m pip install --upgrade pip
   .venv/bin/python -m pip install -r requirements.txt
-  touch .venv/installiert.txt
+  cp requirements.txt .venv/installiert.txt
 fi
 
 # Ein Absturz soll den Dauerstream nicht beenden: nach 10 Sekunden neu starten.
