@@ -120,23 +120,35 @@ def save_scoreboard(path: Path, board: Scoreboard) -> None:
 
 
 def load_scoreboard(path: Path) -> Scoreboard:
-    """Lädt den Stand. Eine kaputte Datei ist kein Abbruch, sondern ein Neuanfang."""
+    """Lädt den Stand. Eine kaputte Datei ist kein Abbruch, sondern ein Neuanfang.
+
+    Die kaputte Datei wird beiseitegelegt. Sonst überschreibt das nächste
+    Speichern den alten Rekord, und man könnte ihn nicht mehr von Hand retten.
+    """
     if not path.exists():
         return Scoreboard()
     try:
         raw = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, RecursionError) as exc:
+        # ValueError deckt kaputtes JSON und ungültiges UTF-8 ab.
         log.warning("Speicherdatei unlesbar (%s). Starte ohne Rekord.", exc)
+        _set_aside(path)
         return Scoreboard()
     if not isinstance(raw, dict):
         log.warning("Speicherdatei hat das falsche Format. Starte ohne Rekord.")
+        _set_aside(path)
         return Scoreboard()
     board = Scoreboard(
         high_score=_nonneg_int(raw.get("high_score")),
         best_depth=_nonneg_int(raw.get("best_depth")),
         rounds_played=_nonneg_int(raw.get("rounds_played")),
     )
-    for item in raw.get("contributors") or []:
+    items = raw.get("contributors") or []
+    if not isinstance(items, list):
+        log.warning("Bestenliste in der Speicherdatei ist unlesbar. Starte ohne Namen.")
+        _set_aside(path)
+        items = []
+    for item in items:
         if not isinstance(item, dict):
             continue
         name = item.get("name")
@@ -149,6 +161,17 @@ def load_scoreboard(path: Path) -> Scoreboard:
         )
         board.contributors[entry.name] = entry
     return board
+
+
+def _set_aside(path: Path) -> None:
+    """Benennt stand.json in stand.broken.json um, falls das geht."""
+    backup = path.with_suffix(".broken" + path.suffix)
+    try:
+        path.replace(backup)
+    except OSError as exc:
+        log.warning("Kaputte Speicherdatei nicht beiseitegelegt: %s", exc)
+        return
+    log.warning("Kaputte Speicherdatei liegt jetzt unter %s.", backup)
 
 
 def _nonneg_int(value: object) -> int:

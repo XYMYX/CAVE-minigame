@@ -2,6 +2,8 @@
 
 import json
 
+import pytest
+
 from cave_dig.scoring import (
     Scoreboard,
     load_scoreboard,
@@ -18,6 +20,19 @@ def test_split_is_fair_and_stable():
     assert sum(shares.values()) == 10
     assert split_points(0, ["Nora"]) == {}
     assert split_points(5, []) == {}
+
+
+@pytest.mark.parametrize(
+    "content",
+    [b'\xff\xfe{"high_score":1}', b'{"contributors":5}', b"[1, 2]", b"{"],
+)
+def test_broken_save_file_is_set_aside_not_a_crash(tmp_path, content):
+    path = tmp_path / "stand.json"
+    path.write_bytes(content)
+    board = load_scoreboard(path)
+    assert board.contributors == {}
+    assert not path.exists()
+    assert (tmp_path / "stand.broken.json").read_bytes() == content
 
 
 def test_depth_bonus_is_capped():
