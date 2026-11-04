@@ -98,6 +98,7 @@ class GameConfig:
     round_end_pause: float
     events_enabled: bool
     event_cooldown: float
+    event_user_cooldown: float
     event_command: str
     random_min_seconds: float
     random_max_seconds: float
@@ -186,6 +187,7 @@ DEFAULTS: dict = {
     "events": {
         "enabled": True,
         "cooldown_seconds": 40,
+        "user_cooldown_seconds": 300,
         "command": "!event",
         "random_min_seconds": 55,
         "random_max_seconds": 95,
@@ -538,6 +540,9 @@ def _build(data: dict) -> GameConfig:
         round_end_pause=_float_value(game.get("round_end_pause"), "round_end_pause", 0.5, 30),
         events_enabled=bool(events.get("enabled", True)),
         event_cooldown=_float_value(events.get("cooldown_seconds"), "cooldown", 1, 3600),
+        event_user_cooldown=_float_value(
+            events.get("user_cooldown_seconds"), "user_cooldown_seconds", 0, 86400
+        ),
         event_command=str(events.get("command") or "!event"),
         random_min_seconds=_float_value(events.get("random_min_seconds"), "random_min", 5, 3600),
         random_max_seconds=_float_value(events.get("random_max_seconds"), "random_max", 5, 7200),

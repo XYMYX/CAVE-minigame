@@ -73,6 +73,8 @@ score:
 events:
   enabled: true
   cooldown_seconds: 40
+  # So lange muss eine einzelne Person warten, bis sie selbst wieder ein Ereignis auslöst.
+  user_cooldown_seconds: 300
   command: "!event"
   random_min_seconds: 55
   random_max_seconds: 95

@@ -84,6 +84,23 @@ def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
     assert game.phase == "play"
 
 
+def test_one_person_cannot_trigger_every_event(tmp_path):
+    game = _game(tmp_path, seed=2)
+    game.handle_messages([ChatMessage("Nora", "!event dunkel")])
+    assert game.event.id == "darkness"
+    # Die gemeinsame Abklingzeit ist vorbei, die persönliche noch nicht.
+    game.event = None
+    game.time += game.config.event_cooldown + 1
+    game.handle_messages([ChatMessage("Nora", "!event dunkel")])
+    assert game.event is None
+    game.handle_messages([ChatMessage("Omar", "!event dunkel")])
+    assert game.event.id == "darkness"
+    game.event = None
+    game.time += game.config.event_user_cooldown
+    game.handle_messages([ChatMessage("Nora", "!event dunkel")])
+    assert game.event.id == "darkness"
+
+
 def test_disabled_events_also_stop_chat_commands(tmp_path):
     game = _game(tmp_path, seed=2)
     game.config = replace(game.config, events_enabled=False)

@@ -33,6 +33,8 @@ log = logging.getLogger("cave_dig.game")
 
 # Mehr Nachrichten heben wir für die nächste Runde nicht auf.
 MAX_HELD_MESSAGES = 400
+# Ab so vielen Einträgen räumen wir abgelaufene Sperren für !event weg.
+MAX_EVENT_USERS = 500
 
 
 @dataclass
@@ -96,6 +98,7 @@ class Game:
         self.pending_end: str | None = None
         self.event: CaveEvent | None = None
         self.event_ready_at = 0.0
+        self.event_user_ready: dict[str, float] = {}
         self.next_random_at = 0.0
         self.demo_event_done = False
         self.particles: list[Particle] = []
@@ -313,9 +316,18 @@ class Game:
                     author,
                 )
                 return
+            if self.time < self.event_user_ready.get(author, 0.0):
+                log.debug("%s muss noch warten, bis wieder ein Ereignis geht.", author)
+                return
             started = self.start_event(command.event_id)
             if not started:
                 log.debug("Ereignis von %s liegt in der Abklingzeit oder läuft schon.", author)
+                return
+            self.event_user_ready[author] = self.time + self.config.event_user_cooldown
+            if len(self.event_user_ready) > MAX_EVENT_USERS:
+                self.event_user_ready = {
+                    name: ready for name, ready in self.event_user_ready.items() if ready > self.time
+                }
             return
         direction = self.languages.parse(text)
         if direction is None:
