@@ -1,6 +1,9 @@
 # Geheimnisse und lokale Anmeldungen. Niemals ins Repository legen.
 .env
-client_secret.json
+.env.*
+!.env.example
+# Google nennt die Datei beim Herunterladen client_secret_123-abc...json.
+client_secret*.json
 tokens/*.json
 
 # Laufzeitdaten
