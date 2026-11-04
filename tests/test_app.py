@@ -64,3 +64,12 @@ def test_a_broken_frame_does_not_stop_the_stream(tmp_path, monkeypatch):
 
     monkeypatch.setattr(Renderer, "draw", broken)
     assert _run(tmp_path, monkeypatch, frames=3) == 0
+
+
+def test_lasting_error_ends_the_game_with_few_log_lines(tmp_path, monkeypatch, caplog):
+    def broken(self, target, game):
+        raise RuntimeError("Testfehler beim Zeichnen")
+
+    monkeypatch.setattr(Renderer, "draw", broken)
+    assert _run(tmp_path, monkeypatch, frames=app.FRAME_ERROR_LIMIT + 50) == 1
+    assert sum("Fehler im Bild" in record.getMessage() for record in caplog.records) == 1

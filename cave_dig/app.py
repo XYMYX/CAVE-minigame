@@ -20,6 +20,7 @@ import logging
 import os
 import signal
 import sys
+import time
 from dataclasses import replace
 from pathlib import Path
 
@@ -49,6 +50,34 @@ log = logging.getLogger("cave_dig.app")
 # start.bat und start.sh starten das Spiel nach einem Absturz neu.
 # Bei diesem Code nicht: eine falsche Konfiguration heilt kein Neustart.
 EXIT_BAD_CONFIG = 3
+# So viele kaputte Bilder hintereinander (bei 60 Bildern etwa 10 Sekunden):
+# Dann ist das Spiel nicht mehr zu retten und das Startskript soll neu starten.
+FRAME_ERROR_LIMIT = 600
+FRAME_ERROR_LOG_SECONDS = 30.0
+
+
+class FrameErrors:
+    """Zählt kaputte Bilder hintereinander und bremst das Log.
+
+    Ein Fehler, der in jedem Bild kommt, würde sonst 60 Einträge pro Sekunde
+    schreiben und das Bild stünde still, ohne dass es jemand merkt.
+    """
+
+    def __init__(self) -> None:
+        self.streak = 0
+        self.next_log = 0.0
+
+    def passed(self) -> None:
+        self.streak = 0
+
+    def failed(self) -> bool:
+        """Im except-Block aufrufen. True heißt: aufgeben."""
+        self.streak += 1
+        now = time.monotonic()
+        if now >= self.next_log:
+            self.next_log = now + FRAME_ERROR_LOG_SECONDS
+            log.exception("Fehler im Bild (%s hintereinander).", self.streak)
+        return self.streak >= FRAME_ERROR_LIMIT
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -110,6 +139,8 @@ def main(argv: list[str] | None = None) -> int:
     frame = 0
     running = True
     fps_samples: list[float] = []
+    frame_errors = FrameErrors()
+    exit_code = 0
 
     def request_stop(signum: int, _frame: object) -> None:
         nonlocal running
@@ -151,8 +182,12 @@ def main(argv: list[str] | None = None) -> int:
                 renderer.draw(logical, game)
                 present(window, logical, config.colors["background_deep"])
                 pygame.display.flip()
+                frame_errors.passed()
             except Exception:
-                log.exception("Fehler im Bild, das Spiel läuft weiter.")
+                if frame_errors.failed():
+                    log.error("Zu viele kaputte Bilder hintereinander. Spiel beendet sich.")
+                    exit_code = 1
+                    break
             frame += 1
             if shot_dir is not None and frame in shot_frames:
                 path = shot_dir / f"cave-dig-{frame:04d}.png"
@@ -173,7 +208,7 @@ def main(argv: list[str] | None = None) -> int:
         provider.stop()
         game.save()
         pygame.quit()
-    return 0
+    return exit_code
 
 
 def _on_key(key: int, game: Game, window: pygame.Surface, logical: pygame.Surface) -> None:
