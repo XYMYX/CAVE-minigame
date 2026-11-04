@@ -143,8 +143,12 @@ chat:
     # api_key: Video-ID und Schlüssel stehen in .env, nie in dieser Datei.
     # oauth:   das Spiel sucht deinen laufenden Livestream selbst.
     mode: api_key
+    # stream = offene Verbindung, Stimmen kommen sofort.
+    # poll   = alle min_poll_seconds nachfragen, Stimmen kommen gebündelt.
+    transport: stream
     video_id: ""
-    # 50 Sekunden halten einen 24/7-Stream unter dem YouTube-Tageslimit.
+    # poll: Abstand zwischen zwei Abfragen. stream: Mindestabstand zwischen zwei
+    # Verbindungen. 50 Sekunden halten einen 24/7-Stream unter dem YouTube-Tageslimit.
     # Siehe README, Abschnitt Kontingent. Kleiner nur, wenn du das Limit kennst.
     min_poll_seconds: 50
     client_secrets: "client_secret.json"

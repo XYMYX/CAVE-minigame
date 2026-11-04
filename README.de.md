@@ -111,7 +111,9 @@ Das normale Tageslimit liegt bei **10.000 Einheiten** und setzt sich um Mitterna
 
 Ein Tag hat 86.400 Sekunden. Bei einem Abstand von 50 Sekunden sind das 1.728 Chat-Aufrufe, mal 5 = **8.640 Einheiten**. Dazu ein paar Aufrufe zum Finden des Chats. Das passt in ein 24/7-Limit. Die Rechnung steht auch im Log, sobald der Anbieter `youtube` ist.
 
-Die API sagt selbst, wie schnell sie gefragt werden möchte (`pollingIntervalMillis`, oft wenige Sekunden). Cave Dig wartet **mindestens** diese Zeit und **mindestens** `min_poll_seconds` (Standard 50). Nachrichten kommen deshalb in Bündeln, ungefähr einmal pro Minute. Der Balken zählt das Bündel im nächsten Stimmen-Fenster. Für ein paar Stunden am Abend darfst du `min_poll_seconds` senken. Für einen ganzen Tag unter 45 Sekunden reicht das freie Limit nicht. Die aktuelle Tabelle: [Quota-Kosten der Data API](https://developers.google.com/youtube/v3/determine_quota_cost).
+Diese Rechnung gilt für `chat.youtube.transport: poll`. Standard ist `stream`: Eine Verbindung bleibt offen (`liveChatMessages.streamList`), und Nachrichten kommen sofort. YouTube nennt 5 Einheiten pro Aufruf, aber nicht, wie lange eine Verbindung hält. Cave Dig öffnet höchstens eine Verbindung pro `min_poll_seconds`, im schlimmsten Fall kostet das also gleich viel wie `poll`. Prüfe nach dem ersten Tag den echten Verbrauch in der Google Cloud Console. Macht `stream` Ärger, setze `transport: poll`.
+
+Bei `poll` sagt die API selbst, wie schnell sie gefragt werden möchte (`pollingIntervalMillis`, oft wenige Sekunden). Cave Dig wartet **mindestens** diese Zeit und **mindestens** `min_poll_seconds` (Standard 50). Nachrichten kommen deshalb in Bündeln, ungefähr einmal pro Minute. Der Balken zählt das Bündel im nächsten Stimmen-Fenster. Für ein paar Stunden am Abend darfst du `min_poll_seconds` senken. Für einen ganzen Tag unter 45 Sekunden reicht das freie Limit nicht. Die aktuelle Tabelle: [Quota-Kosten der Data API](https://developers.google.com/youtube/v3/determine_quota_cost).
 
 ### Variante A: API-Schlüssel und Video-ID
 

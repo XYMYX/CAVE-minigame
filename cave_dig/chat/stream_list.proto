@@ -1,0 +1,41 @@
+// Ausschnitt aus Googles stream_list.proto für liveChatMessages.streamList.
+// Nur die Felder, die Cave Dig liest. Der Rest wird beim Empfang übersprungen.
+// Die Nummern müssen zu Google passen, die Namen nur zu unserem Code.
+// Neu erzeugen: python -m grpc_tools.protoc -I. --python_out=. stream_list.proto
+syntax = "proto2";
+
+package youtube.api.v3;
+
+message LiveChatMessageListRequest {
+  optional string live_chat_id = 1;
+  optional string page_token = 99;
+  repeated string part = 100;
+}
+
+message LiveChatMessageListResponse {
+  optional string offline_at = 2;
+  optional string next_page_token = 100602;
+  repeated LiveChatMessage items = 1007;
+}
+
+message LiveChatMessage {
+  optional LiveChatMessageSnippet snippet = 2;
+  optional LiveChatMessageAuthorDetails author_details = 3;
+}
+
+message LiveChatMessageSnippet {
+  message TypeWrapper {
+    enum Type {
+      INVALID_TYPE = 0;
+      TEXT_MESSAGE_EVENT = 1;
+    }
+  }
+  optional TypeWrapper.Type type = 1;
+  optional string published_at = 4;
+  optional string display_message = 16;
+}
+
+message LiveChatMessageAuthorDetails {
+  optional string channel_id = 10101;
+  optional string display_name = 103;
+}

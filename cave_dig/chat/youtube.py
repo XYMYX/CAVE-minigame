@@ -17,6 +17,12 @@ wie min_poll_seconds. Lieber etwas später als gesperrt.
 Nachrichten kommen deshalb in Bündeln. Das Stimmen-Fenster zählt sie,
 sobald sie ankommen. Der Balken im Bild reagiert auf dieses Bündel.
 
+Mit chat.youtube.transport: stream (Standard) bleibt stattdessen eine
+Verbindung offen, siehe youtube_stream.py. Stimmen kommen dann sofort. Laut
+YouTube kostet ein Aufruf 5 Einheiten. Bricht die Verbindung ab, wartet das
+Spiel min_poll_seconds bis zum nächsten Versuch. Im schlimmsten Fall kostet
+der Stream darum gleich viel wie die Abfrage, nicht mehr.
+
 Fehler (Netz, Limit, Stream aus) beenden das Spiel nicht. Der Thread
 wartet und versucht es wieder.
 """
@@ -26,6 +32,7 @@ from __future__ import annotations
 import logging
 import socket
 import threading
+import time
 from datetime import datetime, timezone
 
 from google.auth.transport.requests import Request
@@ -116,12 +123,23 @@ def classify_api_error(status: int, body: str) -> str:
     return "other"
 
 
+class StreamFailed(Exception):
+    """Die offene Verbindung ist mit einem Fehler von YouTube abgebrochen."""
+
+    def __init__(self, kind: str, code: str, details: str) -> None:
+        super().__init__(f"{code} ({kind})")
+        self.kind = kind
+        self.code = code
+        self.details = details
+
+
 class YouTubeChatProvider(ChatProvider):
     def __init__(self, config: GameConfig) -> None:
         super().__init__()
         self.config = config
         self._catalog: Catalog = load_catalog(config.language, config.locales_dir)
         self.mode = config.youtube_mode
+        self.transport = config.youtube_transport
         self.api_key = config.youtube_api_key
         self.video_id = normalize_video_id(config.youtube_video_id)
         self.min_poll = config.youtube_min_poll_seconds
@@ -132,6 +150,10 @@ class YouTubeChatProvider(ChatProvider):
         self._queue: list[ChatMessage] = []
         self._lock = threading.Lock()
         self._client = None
+        self._credentials: Credentials | None = None
+        self._channel = None
+        self._call = None
+        self._next_connect = 0.0
         self.chat_id: str | None = None
         self.page_token: str | None = None
         self.primed = False
@@ -146,6 +168,10 @@ class YouTubeChatProvider(ChatProvider):
 
     def stop(self) -> None:
         self._stop.set()
+        call = self._call
+        if call is not None:
+            # Eine offene Verbindung wartet sonst weiter auf die nächste Nachricht.
+            call.cancel()
         if self._thread is not None:
             self._thread.join(timeout=2)
 
@@ -187,6 +213,10 @@ class YouTubeChatProvider(ChatProvider):
                     self.page_token = None
                     self.primed = False
                     log.info("Live-Chat gefunden.")
+                if self.transport == "stream":
+                    self._stream_once()
+                    backoff = 5.0
+                    continue
                 wait = self._poll_once()
                 backoff = 5.0
                 pause = max(self.min_poll, wait or 0)
@@ -211,19 +241,11 @@ class YouTubeChatProvider(ChatProvider):
             except HttpError as exc:
                 body = exc.content.decode("utf-8", "replace") if exc.content else ""
                 status = getattr(exc.resp, "status", 0) or 0
-                kind = classify_api_error(int(status), body)
-                self._set_status(kind)
-                log.warning("YouTube-Fehler %s (%s): %s", status, kind, body[:300])
-                delay = self._delay_for(kind, backoff)
-                if kind == "other":
-                    backoff = min(300.0, backoff * 2)
-                if kind in ("ended", "not_found", "auth"):
-                    self.chat_id = None
-                    self.page_token = None
-                    self.primed = False
-                if kind == "auth":
-                    self._client = None
-                self._stop.wait(delay)
+                backoff = self._after_failure(
+                    classify_api_error(int(status), body), status, body, backoff
+                )
+            except StreamFailed as exc:
+                backoff = self._after_failure(exc.kind, exc.code, exc.details, backoff)
             except Exception as exc:
                 self._set_status("other")
                 log.exception("YouTube-Verbindung unterbrochen: %s", exc)
@@ -231,6 +253,23 @@ class YouTubeChatProvider(ChatProvider):
                 self._client = None
                 self._stop.wait(min(300.0, backoff))
                 backoff = min(300.0, backoff * 2)
+        self._close_channel()
+
+    def _after_failure(self, kind: str, status: object, body: str, backoff: float) -> float:
+        """Setzt Anzeige und Zustand, wartet und gibt die nächste Pause zurück."""
+        self._set_status(kind)
+        log.warning("YouTube-Fehler %s (%s): %s", status, kind, body[:300])
+        delay = self._delay_for(kind, backoff)
+        if kind == "other":
+            backoff = min(300.0, backoff * 2)
+        if kind in ("ended", "not_found", "auth"):
+            self.chat_id = None
+            self.page_token = None
+            self.primed = False
+        if kind == "auth":
+            self._client = None
+        self._stop.wait(delay)
+        return backoff
 
     def _delay_for(self, kind: str, backoff: float) -> float:
         if kind == "quota":
@@ -254,15 +293,21 @@ class YouTubeChatProvider(ChatProvider):
 
     def _build_client(self):
         if self.mode == "oauth":
-            creds = Credentials.from_authorized_user_file(str(self.token_path), SCOPES)
-            if creds.expired and creds.refresh_token:
-                creds.refresh(Request())
-                self.token_path.parent.mkdir(parents=True, exist_ok=True)
-                self.token_path.write_text(creds.to_json(), encoding="utf-8")
-            if not creds.valid:
-                raise RuntimeError("OAuth-Token ist ungültig. python -m cave_dig.auth erneut ausführen.")
-            return build("youtube", "v3", credentials=creds, cache_discovery=False)
+            self._credentials = Credentials.from_authorized_user_file(str(self.token_path), SCOPES)
+            return build(
+                "youtube", "v3", credentials=self._fresh_credentials(), cache_discovery=False
+            )
         return build("youtube", "v3", developerKey=self.api_key, cache_discovery=False)
+
+    def _fresh_credentials(self) -> Credentials:
+        creds = self._credentials
+        if creds.expired and creds.refresh_token:
+            creds.refresh(Request())
+            self.token_path.parent.mkdir(parents=True, exist_ok=True)
+            self.token_path.write_text(creds.to_json(), encoding="utf-8")
+        if not creds.valid:
+            raise RuntimeError("OAuth-Token ist ungültig. python -m cave_dig.auth erneut ausführen.")
+        return creds
 
     def _resolve_chat_id(self) -> str:
         if self.mode == "oauth":
@@ -309,6 +354,70 @@ class YouTubeChatProvider(ChatProvider):
             return wait
         self._push(messages)
         return wait
+
+    def _stream_metadata(self) -> list[tuple[str, str]]:
+        if self.mode == "oauth":
+            return [("authorization", f"Bearer {self._fresh_credentials().token}")]
+        return [("x-goog-api-key", self.api_key)]
+
+    def _wait_for_connect_slot(self) -> bool:
+        """Jede neue Verbindung kostet. Mehr als eine pro min_poll_seconds gibt es nie."""
+        pause = self._next_connect - time.monotonic()
+        if pause > 0 and self._stop.wait(pause):
+            return False
+        self._next_connect = time.monotonic() + self.min_poll
+        return True
+
+    def _open_channel(self):
+        from cave_dig.chat import youtube_stream
+
+        return youtube_stream.open_channel()
+
+    def _close_channel(self) -> None:
+        if self._channel is not None:
+            self._channel.close()
+            self._channel = None
+
+    def _stream_once(self) -> None:
+        """Hält eine Verbindung offen, bis sie endet. Danach verbindet _run neu."""
+        from cave_dig.chat import youtube_stream
+
+        if not self._wait_for_connect_slot():
+            return
+        if self._channel is None:
+            self._channel = self._open_channel()
+        self._call = youtube_stream.open_stream(
+            self._channel, self.chat_id, self.page_token, self._stream_metadata()
+        )
+        self._set_status("ready")
+        try:
+            for response in self._call:
+                if response.offline_at:
+                    raise RuntimeError("Der Stream ist offline.")
+                self._take_stream_response(response)
+        except youtube_stream.grpc.RpcError as exc:
+            if youtube_stream.is_cancelled(exc) and self._stop.is_set():
+                return
+            if youtube_stream.is_bad_token(exc):
+                self.page_token = None
+                self.primed = False
+            raise StreamFailed(*youtube_stream.classify_rpc_error(exc)) from exc
+        finally:
+            self._call = None
+
+    def _take_stream_response(self, response) -> None:
+        from cave_dig.chat import youtube_stream
+
+        payload = youtube_stream.response_to_payload(response)
+        messages, token, _wait = parse_live_chat_payload(payload)
+        if token:
+            self.page_token = token
+        # Wie bei list: Die erste Antwort kann ältere Zeilen enthalten.
+        if not self.primed:
+            self.primed = True
+            log.info("YouTube-Chat angehängt, ältere Zeilen werden nicht gezählt.")
+            return
+        self._push(messages)
 
 
 def _published(value: object) -> float:

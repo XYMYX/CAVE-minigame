@@ -115,6 +115,7 @@ class GameConfig:
     bot_interval_max: float
     bot_bias_left: float
     youtube_mode: str
+    youtube_transport: str
     youtube_api_key: str
     youtube_video_id: str
     youtube_min_poll_seconds: float
@@ -127,7 +128,7 @@ class GameConfig:
     @property
     def steer_hold(self) -> float:
         """Wie lange der Schub wirkt. YouTube liefert nur alle min_poll_seconds Stimmen."""
-        if self.provider == "youtube":
+        if self.provider == "youtube" and self.youtube_transport == "poll":
             return max(self.hold_seconds, self.youtube_min_poll_seconds)
         return self.hold_seconds
 
@@ -248,6 +249,7 @@ DEFAULTS: dict = {
         },
         "youtube": {
             "mode": "api_key",
+            "transport": "stream",
             "api_key": "",
             "video_id": "",
             "min_poll_seconds": 50,
@@ -492,6 +494,10 @@ def _build(data: dict) -> GameConfig:
     if mode not in ("api_key", "oauth"):
         raise ConfigError("chat.youtube.mode muss api_key oder oauth sein.")
 
+    transport = str(youtube.get("transport", "stream")).strip().lower()
+    if transport not in ("stream", "poll"):
+        raise ConfigError("chat.youtube.transport muss stream oder poll sein.")
+
     blocks = _build_blocks(data.get("blocks") or {})
     bands = _build_bands(data.get("generation") or {}, blocks)
     colors = {
@@ -583,6 +589,7 @@ def _build(data: dict) -> GameConfig:
         bot_interval_max=_float_value(simulator.get("bot_interval_max"), "bot_interval_max", 0.05, 60),
         bot_bias_left=_float_value(simulator.get("bot_bias_left"), "bot_bias_left", 0, 1),
         youtube_mode=mode,
+        youtube_transport=transport,
         youtube_api_key=str(youtube.get("api_key") or "").strip(),
         youtube_video_id=str(youtube.get("video_id") or "").strip(),
         youtube_min_poll_seconds=poll,

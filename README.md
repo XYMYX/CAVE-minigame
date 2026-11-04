@@ -116,7 +116,9 @@ The usual daily quota is **10,000 units**. It resets at midnight Pacific Time.
 
 A day has 86,400 seconds. A 50-second gap is 1,728 chat calls, times 5 = **8,640 units**, plus a few calls to find the chat. That fits a 24/7 quota. The same estimate is written to the log when the provider is `youtube`.
 
-The API also says how soon it wants to be asked (`pollingIntervalMillis`, often a few seconds). Cave Dig waits **at least** that long and **at least** `min_poll_seconds` (default 50). Messages therefore arrive in bundles, about once a minute. The bar counts that bundle in the next vote window. For a few evening hours you may lower `min_poll_seconds`. For a full day, a gap under 45 seconds does not fit the free quota. Current table: [YouTube Data API quota costs](https://developers.google.com/youtube/v3/determine_quota_cost).
+This calculation is for `chat.youtube.transport: poll`. The default is `stream`: one connection stays open (`liveChatMessages.streamList`) and messages arrive right away. YouTube lists one call at 5 units. It does not say how long a connection lasts. Cave Dig opens at most one connection per `min_poll_seconds`, so the worst case is the same as polling. Check your real use in the Google Cloud Console after the first day. If `stream` causes trouble, set `transport: poll`.
+
+With `poll`, the API also says how soon it wants to be asked (`pollingIntervalMillis`, often a few seconds). Cave Dig waits **at least** that long and **at least** `min_poll_seconds` (default 50). Messages therefore arrive in bundles, about once a minute. The bar counts that bundle in the next vote window. For a few evening hours you may lower `min_poll_seconds`. For a full day, a gap under 45 seconds does not fit the free quota. Current table: [YouTube Data API quota costs](https://developers.google.com/youtube/v3/determine_quota_cost).
 
 ### Option A: API key and video id
 

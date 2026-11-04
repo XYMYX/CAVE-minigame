@@ -101,7 +101,8 @@ def main(argv: list[str] | None = None) -> int:
     if config.provider == "youtube":
         units = estimate_daily_chat_units(config.youtube_min_poll_seconds)
         log.info(
-            "YouTube-Abfrage alle %.0f s, grob %s Einheiten pro Tag (Limit %s).",
+            "YouTube: höchstens ein Aufruf alle %.0f s, im schlimmsten Fall "
+            "grob %s Einheiten pro Tag (Limit %s).",
             config.youtube_min_poll_seconds,
             f"{units:,}".replace(",", "."),
             f"{DAILY_QUOTA_LIMIT:,}".replace(",", "."),

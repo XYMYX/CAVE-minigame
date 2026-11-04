@@ -110,10 +110,14 @@ def test_push_lasts_until_the_next_youtube_bundle(tmp_path, monkeypatch):
     path = tmp_path / "config.yaml"
     path.write_text("vote:\n  hold_seconds: 4\n", encoding="utf-8")
     assert load_config(path).steer_hold == 4
-    path.write_text(
-        "vote:\n  hold_seconds: 4\nchat:\n  provider: youtube\n", encoding="utf-8"
-    )
+    chat = "chat:\n  provider: youtube\n  youtube:\n    transport: "
+    path.write_text(f"vote:\n  hold_seconds: 4\n{chat}stream\n", encoding="utf-8")
+    assert load_config(path).steer_hold == 4
+    path.write_text(f"vote:\n  hold_seconds: 4\n{chat}poll\n", encoding="utf-8")
     assert load_config(path).steer_hold == 50
+    path.write_text(f"{chat}taube\n", encoding="utf-8")
+    with pytest.raises(ConfigError, match="transport"):
+        load_config(path)
 
 
 def test_daily_quota_math():
