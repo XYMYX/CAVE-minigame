@@ -72,6 +72,10 @@ def parse_live_chat_payload(
             continue
         try:
             snippet = item.get("snippet") or {}
+            # Nur echte Textnachrichten. Sperr-Meldungen, Mitgliedschaften und
+            # Ähnliches haben auch einen Anzeigetext, sind aber keine Stimmen.
+            if snippet.get("type", "textMessageEvent") != "textMessageEvent":
+                continue
             if "displayMessage" not in snippet:
                 continue
             details = item.get("authorDetails") or {}

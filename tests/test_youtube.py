@@ -33,6 +33,25 @@ def test_parse_payload_skips_broken_items():
     assert messages[0].sent_at > 0
 
 
+def test_only_text_messages_count():
+    def item(kind):
+        return {
+            "snippet": {"type": kind, "displayMessage": "left"},
+            "authorDetails": {"displayName": "Nora"},
+        }
+
+    payload = {
+        "items": [
+            item("textMessageEvent"),
+            item("userBannedEvent"),
+            item("newSponsorEvent"),
+            item("superChatEvent"),
+        ]
+    }
+    messages, _token, _wait = parse_live_chat_payload(payload)
+    assert len(messages) == 1
+
+
 def test_video_id_from_url():
     assert normalize_video_id("abcdefghijk") == "abcdefghijk"
     assert normalize_video_id("https://www.youtube.com/watch?v=abcdefghijk&t=3") == "abcdefghijk"
