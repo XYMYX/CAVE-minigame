@@ -28,6 +28,15 @@ def test_shipped_config_has_the_documented_values():
     assert config.blocks["air"].solid is False
 
 
+def test_shipped_balance_matches_the_defaults(tmp_path):
+    shipped = load_config(ROOT / "config.yaml")
+    path = tmp_path / "config.yaml"
+    path.write_text("game:\n  title: Testlauf\n", encoding="utf-8")
+    defaults = load_config(path)
+    for name in ("passive_drain", "chip_damage", "bedrock_damage", "stuck_seconds"):
+        assert getattr(shipped, name) == getattr(defaults, name)
+
+
 def test_missing_key_falls_back(tmp_path, monkeypatch):
     monkeypatch.delenv("YOUTUBE_API_KEY", raising=False)
     monkeypatch.delenv("YOUTUBE_VIDEO_ID", raising=False)

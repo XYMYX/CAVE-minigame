@@ -56,15 +56,17 @@ physics:
 integrity:
   maximum: 100
   # Ständiger kleiner Verlust, damit eine Runde irgendwann endet.
-  passive_drain: 0.45
+  passive_drain: 0.1
   regen_per_second: 2.4
   regen_min_speed: 90
-  chip_damage: 0.28
-  bedrock_damage: 5
+  # Klein halten: YouTube liefert nur alle 50 Sekunden Stimmen. Eine Runde muss
+  # mehrere Lieferungen erleben, sonst geht der Chat leer aus.
+  chip_damage: 0.05
+  bedrock_damage: 0.1
   explosion_damage: 26
   explosion_radius: 2.15
   cave_in_damage: 12
-  stuck_seconds: 14
+  stuck_seconds: 110
 
 score:
   # Pro Meter Tiefe ein kleines Plus, gedeckelt.
