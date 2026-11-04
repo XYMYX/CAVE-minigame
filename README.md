@@ -261,3 +261,8 @@ On Windows, set `SDL_VIDEODRIVER` only when you truly want no window.
 - **Real chat:** an API key or OAuth, as above, and `chat.provider: youtube`.
 - **Going live:** the stream key only in OBS, not in this project.
 - **German labels:** `language: de` in `config.yaml`.
+
+## How it was made
+
+- Idea, requirements and testing: me
+- Code: written by AI (Cursor first, then reviewed and improved by Claude Code)
