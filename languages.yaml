@@ -16,6 +16,8 @@
 #   Kurze, mehrdeutige Kürzel zählen nur, wenn die GANZE Nachricht
 #   genau dieses Kürzel ist. "l" lenkt also nach links, "hallo l" nicht.
 #   So wird aus "brilliant" nicht aus Versehen "r" oder "right".
+#   Gilt auch für Wörter, die in anderen Sprachen etwas anderes heissen:
+#   Türkisch "sag" soll in "sag mal" keine Stimme sein.
 #
 # Ohne whole_message zählt das Wort, wenn es als eigenes Wort vorkommt.
 # "go left now" zählt. "leftover" zählt nicht.
@@ -88,7 +90,7 @@ left:
   - {word: izquierda, lang: es}
   - {word: esquerda, lang: pt}
   - {word: lewo, lang: pl}
-  - {word: sol, lang: tr}
+  - {word: sol, lang: tr, whole_message: true}
   - {word: "лево", lang: ru}
   - {word: "налево", lang: ru}
   - {word: "влево", lang: ru}
@@ -127,8 +129,8 @@ right:
   - {word: derecha, lang: es}
   - {word: direita, lang: pt}
   - {word: prawo, lang: pl}
-  - {word: "sağ", lang: tr}
-  - {word: sag, lang: tr}
+  - {word: "sağ", lang: tr, whole_message: true}
+  - {word: sag, lang: tr, whole_message: true}
   - {word: "право", lang: ru}
   - {word: "направо", lang: ru}
   - {word: "вправо", lang: ru}
