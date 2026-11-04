@@ -58,6 +58,17 @@ def test_broken_yaml_is_a_clear_error(tmp_path):
         load_config(path)
 
 
+@pytest.mark.parametrize(
+    "text",
+    ["game:\n", "chat:\n", "blocks:\n  dirt:\n    hits: abc\n", "game: 5\n"],
+)
+def test_wrong_shape_is_a_clear_error(tmp_path, text):
+    path = tmp_path / "config.yaml"
+    path.write_text(text, encoding="utf-8")
+    with pytest.raises(ConfigError):
+        load_config(path)
+
+
 def test_unknown_block_in_weights(tmp_path):
     path = tmp_path / "config.yaml"
     path.write_text(

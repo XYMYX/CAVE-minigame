@@ -398,8 +398,15 @@ def load_config(path: Path | None = None) -> GameConfig:
         raise ConfigError(f"Konfigurationsdatei fehlt: {file_path}")
 
     data = _deep_merge(DEFAULTS, user)
-    _apply_env(data)
-    return _build(data)
+    try:
+        _apply_env(data)
+        return _build(data)
+    except (AttributeError, KeyError, TypeError, ValueError) as exc:
+        # Zum Beispiel "game:" ohne Inhalt oder "hits: abc".
+        raise ConfigError(
+            "config.yaml passt nicht: Ein Abschnitt ist leer oder ein Wert hat "
+            f"den falschen Typ.\nDetails: {exc}"
+        ) from exc
 
 
 def estimate_daily_chat_units(poll_seconds: float, cost_per_call: int = LIVE_CHAT_UNITS) -> int:
