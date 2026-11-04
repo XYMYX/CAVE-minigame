@@ -200,7 +200,9 @@ class World:
         playable = self.cols - 2 * self.wall
         gap = min(self.config.shelf_gap, playable)
         span = playable - gap
-        start = self.wall + (self._mix(0, row, 3) % (span + 1))
+        # Nicht direkt % nehmen: Die letzten Bits von _mix ändern sich bei
+        # jeder 16. Reihe nicht, und alle Lücken lägen übereinander.
+        start = self.wall + random.Random(self._mix(0, row, 3)).randrange(span + 1)
         return set(range(start, start + gap))
 
     def _band(self, row: int) -> Band:

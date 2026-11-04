@@ -39,6 +39,14 @@ def test_shelf_has_a_gap_and_bedrock_walls():
     assert sum(1 for kind in middle if kind != "bedrock") == gap
 
 
+def test_shelf_gaps_move_between_shelves():
+    config = load_config(ROOT / "config.yaml")
+    rows = range(config.shelf_every * 2, config.shelf_every * 22, config.shelf_every)
+    for seed in range(1, 31):
+        world = World(config, seed=seed)
+        assert len({min(world._gap_columns(row)) for row in rows}) > 1
+
+
 def test_discarded_rows_stay_gone():
     config = load_config(ROOT / "config.yaml")
     world = World(config, seed=2)
