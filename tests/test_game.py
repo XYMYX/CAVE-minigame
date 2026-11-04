@@ -1,5 +1,6 @@
 """Die Runde rechnet ohne Fenster: fallen, punkten, neu starten, speichern."""
 
+import logging
 from pathlib import Path
 
 from cave_dig.chat.base import ChatMessage
@@ -82,6 +83,20 @@ def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
     )
     game.update(1 / 60)
     assert game.phase == "play"
+
+
+def test_chat_spam_does_not_reach_the_log(tmp_path, caplog):
+    game = _game(tmp_path, seed=2)
+    caplog.set_level(logging.DEBUG)
+    game.handle_messages([ChatMessage("Nora", "!event \x1b[2Jboom")])
+    assert "\x1b" not in caplog.text
+    caplog.clear()
+    caplog.set_level(logging.INFO)
+    game.handle_messages([ChatMessage("Nora", "!event boom") for _ in range(50)])
+    game.start_event("darkness", force=True)
+    caplog.clear()
+    game.handle_messages([ChatMessage("Nora", "!event") for _ in range(50)])
+    assert caplog.records == []
 
 
 def test_event_command_respects_cooldown(tmp_path):

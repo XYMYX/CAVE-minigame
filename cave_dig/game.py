@@ -293,11 +293,17 @@ class Game:
         command = parse_event_command(text, self.config.event_command, self.config.event_aliases)
         if command is not None:
             if command.unknown:
-                log.info("Unbekanntes Ereignis '%s' von %s, ignoriert.", command.unknown, author)
+                # debug statt info: Chat-Spam soll das Log nicht füllen, und
+                # sanitize_name nimmt Steuerzeichen aus dem fremden Text.
+                log.debug(
+                    "Unbekanntes Ereignis '%s' von %s, ignoriert.",
+                    sanitize_name(command.unknown),
+                    author,
+                )
                 return
             started = self.start_event(command.event_id)
             if not started:
-                log.info("Ereignis von %s liegt in der Abklingzeit oder läuft schon.", author)
+                log.debug("Ereignis von %s liegt in der Abklingzeit oder läuft schon.", author)
             return
         direction = self.languages.parse(text)
         if direction is None:
