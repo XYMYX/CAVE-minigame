@@ -78,6 +78,8 @@ class GameConfig:
     restitution: float
     horizontal_drag: float
     nudge_speed: float
+    steer_force: float
+    hold_seconds: float
     max_horizontal_speed: float
     hit_cooldown: float
     pickaxe_radius: float
@@ -123,6 +125,13 @@ class GameConfig:
     world_seed: int
 
     @property
+    def steer_hold(self) -> float:
+        """Wie lange der Schub wirkt. YouTube liefert nur alle min_poll_seconds Stimmen."""
+        if self.provider == "youtube":
+            return max(self.hold_seconds, self.youtube_min_poll_seconds)
+        return self.hold_seconds
+
+    @property
     def block_size(self) -> int:
         """Pixel pro Block auf der inneren Zeichenfläche. Geht immer auf die Breite."""
         return max(8, self.logical_width // self.columns)
@@ -157,6 +166,8 @@ DEFAULTS: dict = {
         "window_seconds": 2.5,
         "one_per_user": True,
         "nudge_speed": 280,
+        "steer_force": 460,
+        "hold_seconds": 5,
         "local_steer": 460,
         "local_voter_name": "Local",
     },
@@ -529,6 +540,8 @@ def _build(data: dict) -> GameConfig:
         restitution=_float_value(physics.get("restitution"), "restitution", 0, 1),
         horizontal_drag=_float_value(physics.get("horizontal_drag"), "horizontal_drag", 0, 10),
         nudge_speed=_float_value(vote.get("nudge_speed"), "nudge_speed", 0, 2000),
+        steer_force=_float_value(vote.get("steer_force"), "steer_force", 0, 4000),
+        hold_seconds=_float_value(vote.get("hold_seconds"), "hold_seconds", 0, 600),
         max_horizontal_speed=_float_value(
             physics.get("max_horizontal_speed"), "max_horizontal_speed", 40, 2000
         ),

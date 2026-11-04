@@ -94,6 +94,8 @@ class Game:
         self.local_direction = 0
         self.nudge_side: str | None = None
         self.nudge_timer = 0.0
+        self.steer_sign = 0
+        self.steer_timer = 0.0
         self.shake = 0.0
         self.status_line = ""
         self.pending_end: str | None = None
@@ -152,6 +154,8 @@ class Game:
         self.event = None
         self.nudge_side = None
         self.nudge_timer = 0.0
+        self.steer_sign = 0
+        self.steer_timer = 0.0
         self.shake = 0.0
         wait = self.rng.uniform(self.config.random_min_seconds, self.config.random_max_seconds)
         self.next_random_at = self.time + wait
@@ -190,6 +194,7 @@ class Game:
         dt = min(dt, 0.05)
         self.time += dt
         self.nudge_timer = max(0.0, self.nudge_timer - dt)
+        self.steer_timer = max(0.0, self.steer_timer - dt)
         self.shake = max(0.0, self.shake - 14 * dt)
 
         if self.phase == "ended":
@@ -206,6 +211,8 @@ class Game:
         if self.local_direction:
             sign = -1 if self.local_direction < 0 else 1
             self.pickaxe.vx += sign * self.config.local_steer * dt
+        if self.steer_timer > 0:
+            self.pickaxe.vx += self.steer_sign * self.config.steer_force * dt
         self.pickaxe.step(dt, self.world, self.on_contact)
         self._process_explosions()
         self._after_physics(dt)
@@ -399,8 +406,12 @@ class Game:
         if credited:
             self.pending_points = 0
         if result.winner is None:
-            self.nudge_side = None
-            self.nudge_timer = 0.45
+            # Gleichstand hebt den Schub auf. Ein leeres Fenster lässt ihn weiterlaufen.
+            if result.all_voters():
+                self.steer_timer = 0.0
+            if self.steer_timer <= 0:
+                self.nudge_side = None
+                self.nudge_timer = 0.45
             return
         sign = -1 if result.winner == "left" else 1
         total = result.left + result.right
@@ -412,8 +423,11 @@ class Game:
             self.pickaxe.vx = limit
         elif self.pickaxe.vx < -limit:
             self.pickaxe.vx = -limit
+        # Der Stoss allein verpufft in etwa einer Sekunde. Der Schub trägt bis zur Lücke.
+        self.steer_sign = sign
+        self.steer_timer = self.config.steer_hold
         self.nudge_side = result.winner
-        self.nudge_timer = 0.7
+        self.nudge_timer = max(0.7, self.config.steer_hold)
 
     def _award_break(self, base_points: int, col: int, row: int, color: tuple[int, int, int]) -> None:
         points = points_at_depth(

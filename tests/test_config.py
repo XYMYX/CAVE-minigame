@@ -105,6 +105,17 @@ def test_unknown_block_in_weights(tmp_path):
         load_config(path)
 
 
+def test_push_lasts_until_the_next_youtube_bundle(tmp_path, monkeypatch):
+    monkeypatch.delenv("CAVE_DIG_PROVIDER", raising=False)
+    path = tmp_path / "config.yaml"
+    path.write_text("vote:\n  hold_seconds: 4\n", encoding="utf-8")
+    assert load_config(path).steer_hold == 4
+    path.write_text(
+        "vote:\n  hold_seconds: 4\nchat:\n  provider: youtube\n", encoding="utf-8"
+    )
+    assert load_config(path).steer_hold == 50
+
+
 def test_daily_quota_math():
     assert estimate_daily_chat_units(50) == 8640
     assert estimate_daily_chat_units(10) == 43200

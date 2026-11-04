@@ -38,6 +38,11 @@ vote:
   one_per_user: true
   # Wie stark die Mehrheit die Spitzhacke zur Seite schiebt.
   nudge_speed: 280
+  # Danach schiebt die Mehrheit noch weiter, damit sie eine Lücke erreicht.
+  # steer_force = Stärke, hold_seconds = Dauer. Neue Stimmen lösen den Schub ab,
+  # Gleichstand beendet ihn. 0 Sekunden schaltet ihn aus.
+  steer_force: 460
+  hold_seconds: 5
   # Nur für deine Tastatur beim Testen, nicht für den Chat.
   local_steer: 460
   local_voter_name: "Local"

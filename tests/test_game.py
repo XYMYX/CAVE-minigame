@@ -52,6 +52,47 @@ def test_closed_window_nudges_and_credits(tmp_path):
     assert game.scoreboard.contributors["Kenji"].votes == 1
 
 
+def _vote(game, *texts):
+    game.handle_messages([ChatMessage(f"u{i}", text) for i, text in enumerate(texts)])
+    game.time += game.config.vote_window_seconds
+    for result in game.votes.close_due(game.time):
+        game._apply_votes(result)
+
+
+def test_majority_keeps_pushing_until_the_hold_ends(tmp_path):
+    game = _game(tmp_path, seed=8)
+    _vote(game, "rechts")
+    assert game.steer_sign == 1
+    assert game.steer_timer == game.config.steer_hold
+    before = game.pickaxe.vx
+    game.pickaxe.vx = 0
+    game.update(0.05)
+    assert game.pickaxe.vx > 0
+    assert before > 0
+    game.steer_timer = 0.01
+    game.update(0.05)
+    assert game.steer_timer == 0
+
+
+def test_empty_window_keeps_the_push_and_a_tie_ends_it(tmp_path):
+    game = _game(tmp_path, seed=8)
+    _vote(game, "links")
+    _vote(game)
+    assert game.steer_timer > 0
+    assert game.nudge_side == "left"
+    _vote(game, "links", "rechts")
+    assert game.steer_timer == 0
+    assert game.nudge_side is None
+
+
+def test_new_round_starts_without_a_push(tmp_path):
+    game = _game(tmp_path, seed=8)
+    _vote(game, "links")
+    game.start_round()
+    assert game.steer_timer == 0
+    assert game.steer_sign == 0
+
+
 def test_round_restarts_and_saves(tmp_path):
     game = _game(tmp_path, seed=9)
     for _ in range(90):
