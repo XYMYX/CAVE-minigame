@@ -85,6 +85,18 @@ def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
     assert game.phase == "play"
 
 
+def test_ore_vein_keeps_bedrock_shelves(tmp_path):
+    for seed in range(1, 21):
+        game = _game(tmp_path, seed=seed)
+        shelf = game.config.shelf_every * 2
+        before = [game.world.type_of(col, shelf) for col in range(game.config.columns)]
+        game.pickaxe.y = (shelf - 2) * game.block_size + 20
+        game.pickaxe.x = 3.5 * game.block_size
+        assert game.start_event("ore_vein", force=True)
+        after = [game.world.type_of(col, shelf) for col in range(game.config.columns)]
+        assert [kind == "bedrock" for kind in after] == [kind == "bedrock" for kind in before]
+
+
 def test_chat_spam_does_not_reach_the_log(tmp_path, caplog):
     game = _game(tmp_path, seed=2)
     caplog.set_level(logging.DEBUG)

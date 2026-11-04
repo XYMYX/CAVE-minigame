@@ -17,6 +17,9 @@ class OreVeinEvent(CaveEvent):
             for dr in range(1, 5):
                 if rng.random() > 0.82:
                     continue
+                # Urgestein bleibt, sonst reißt die Ader Barrieren auf.
+                if game.world.type_of(col + dc, row + dr) == "bedrock":  # type: ignore[attr-defined]
+                    continue
                 game.world.set_kind(col + dc, row + dr, "gem")  # type: ignore[attr-defined]
 
     def on_update(self, game: object, dt: float) -> None:
