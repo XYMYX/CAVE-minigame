@@ -116,6 +116,7 @@ class Game:
         self.rng = random.Random(1)
         self.fx_rng = random.Random(2)
         self.scoreboard: Scoreboard = load_scoreboard(config.save_path)
+        self.scoreboard.remove_blocked(self._is_blocked)
         self.votes = VoteAggregator(config.vote_window_seconds, config.one_vote_per_user)
         self.world = World(config, seed=1)
         self.pickaxe = self._make_pickaxe()
@@ -310,6 +311,8 @@ class Game:
         author = sanitize_name(message.author, self.catalog.t("hud.unknown"))
         # Die Kennung zählt die Person, der Name steht nur im Bild.
         voter = message.author_id or author
+        if self._is_blocked(voter, author):
+            return
         self.voter_names[voter] = author
         command = parse_event_command(text, self.config.event_command, self.config.event_aliases)
         if command is not None:
@@ -339,6 +342,14 @@ class Game:
         if direction is None:
             return
         self._cast_vote(voter, direction)
+
+    def _is_blocked(self, voter: str, name: str) -> bool:
+        """Kennung muss genau passen, beim Namen reicht ein Teil des Textes."""
+        voter_text = voter.casefold()
+        name_text = name.casefold()
+        return any(
+            entry == voter_text or entry in name_text for entry in self.config.chat_blocked
+        )
 
     def _cast_vote(self, author: str, direction: str) -> None:
         closed = self.votes.add(author, direction, self.time)

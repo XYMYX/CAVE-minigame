@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -68,6 +69,14 @@ class Scoreboard:
 
     def add_vote(self, key: str, name: str | None = None) -> None:
         self._entry(key, name).votes += 1
+
+    def remove_blocked(self, is_blocked: Callable[[str, str], bool]) -> None:
+        """Nimmt gesperrte Personen aus der Liste. Bekommt Kennung und Name."""
+        self.contributors = {
+            key: entry
+            for key, entry in self.contributors.items()
+            if not is_blocked(key, entry.name)
+        }
 
     def _entry(self, key: str, name: str | None) -> Contributor:
         entry = self.contributors.setdefault(key, Contributor(name or key))

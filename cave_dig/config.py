@@ -119,6 +119,7 @@ class GameConfig:
     youtube_client_secrets: Path
     youtube_token_path: Path
     twitch_channel: str
+    chat_blocked: tuple[str, ...]
     world_seed: int
 
     @property
@@ -227,6 +228,7 @@ DEFAULTS: dict = {
     },
     "chat": {
         "provider": "simulator",
+        "blocked": [],
         "simulator": {
             "bot_enabled": True,
             "bot_interval_min": 0.28,
@@ -563,6 +565,7 @@ def _build(data: dict) -> GameConfig:
         youtube_client_secrets=_resolve(str(youtube.get("client_secrets") or "client_secret.json")),
         youtube_token_path=_resolve(str(youtube.get("token_path") or "tokens/youtube_token.json")),
         twitch_channel=str((chat.get("twitch") or {}).get("channel") or "").strip().lstrip("#"),
+        chat_blocked=_blocked(chat.get("blocked")),
         world_seed=_int(game, "world_seed", 0, 2_000_000_000),
     )
 
@@ -675,6 +678,17 @@ def _float_value(value: object, label: str, low: float, high: float) -> float:
     if not low <= number <= high:
         raise ConfigError(f"{label} muss zwischen {low} und {high} liegen, ist aber {number}.")
     return number
+
+
+def _blocked(value: object) -> tuple[str, ...]:
+    """Liste aus chat.blocked, klein geschrieben. Leere Einträge fallen weg."""
+    if value is None:
+        return ()
+    # Ein einzelner Text würde sonst Buchstabe für Buchstabe sperren.
+    if not isinstance(value, list):
+        raise ConfigError("chat.blocked muss eine Liste sein, zum Beispiel [Name1, Name2].")
+    entries = (str(item).strip().casefold() for item in value)
+    return tuple(entry for entry in entries if entry)
 
 
 def _language_code(value: object) -> str:

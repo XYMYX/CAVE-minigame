@@ -120,6 +120,11 @@ chat:
   # youtube   = echter Live-Chat (Zugangsdaten in .env).
   # twitch    = Platzhalter, noch ohne Verbindung.
   provider: simulator
+  # Sperrliste. Ein Eintrag sperrt jeden Namen, der diesen Text enthält (Gross/Klein
+  # ist egal), oder genau eine Kennung wie youtube:UCabc. Gesperrte Personen zählen
+  # nicht mehr und verschwinden beim nächsten Start aus der Bestenliste.
+  # Beispiel: blocked: [Beleidigung, "youtube:UCabc"]
+  blocked: []
   simulator:
     bot_enabled: true
     bot_interval_min: 0.28

@@ -69,6 +69,15 @@ def test_wrong_shape_is_a_clear_error(tmp_path, text):
         load_config(path)
 
 
+def test_block_list_must_be_a_list(tmp_path):
+    path = tmp_path / "config.yaml"
+    path.write_text("chat:\n  blocked: [Name, ' ', YouTube:UCabc]\n", encoding="utf-8")
+    assert load_config(path).chat_blocked == ("name", "youtube:ucabc")
+    path.write_text("chat:\n  blocked: name\n", encoding="utf-8")
+    with pytest.raises(ConfigError, match="Liste"):
+        load_config(path)
+
+
 def test_unknown_block_in_weights(tmp_path):
     path = tmp_path / "config.yaml"
     path.write_text(

@@ -84,6 +84,27 @@ def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
     assert game.phase == "play"
 
 
+def test_blocked_people_do_not_count_and_leave_the_list(tmp_path):
+    game = _game(tmp_path, seed=8)
+    game.config = replace(game.config, chat_blocked=("böse", "youtube:ucabc"))
+    game.handle_messages(
+        [
+            ChatMessage("Der BÖSE Max", "links"),
+            ChatMessage("Lea", "links", author_id="youtube:UCabc"),
+            ChatMessage("Der BÖSE Max", "!event dunkel"),
+            ChatMessage("Nora", "links"),
+        ]
+    )
+    assert game.votes.left == 1
+    assert game.event is None
+
+    game.scoreboard.add_contributor_points("Der böse Max", 50)
+    game.scoreboard.add_contributor_points("Nora", 50)
+    game.save()
+    fresh = Game(game.config, game.languages, seed=1)
+    assert sorted(fresh.scoreboard.contributors) == ["Nora"]
+
+
 def test_same_name_different_people_are_counted_apart(tmp_path):
     game = _game(tmp_path, seed=8)
     game.handle_messages(
