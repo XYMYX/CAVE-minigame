@@ -144,11 +144,11 @@ def main(argv: list[str] | None = None) -> int:
                 game.status_line = provider.status
                 game.handle_messages(provider.poll(game.time))
                 game.update(dt)
+                renderer.draw(logical, game)
+                present(window, logical, config.colors["background_deep"])
+                pygame.display.flip()
             except Exception:
                 log.exception("Fehler im Bild, das Spiel läuft weiter.")
-            renderer.draw(logical, game)
-            present(window, logical, config.colors["background_deep"])
-            pygame.display.flip()
             frame += 1
             if shot_dir is not None and frame in shot_frames:
                 path = shot_dir / f"cave-dig-{frame:04d}.png"

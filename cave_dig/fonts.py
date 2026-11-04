@@ -54,7 +54,16 @@ class FontChain:
             runs.append((self.fonts[current_index], "".join(current)))
         if not runs:
             return pygame.Surface((1, 1), pygame.SRCALPHA)
-        parts = [font.render(piece, True, color) for font, piece in runs]
+        parts = []
+        for font, piece in runs:
+            try:
+                parts.append(font.render(piece, True, color))
+            except (pygame.error, ValueError):
+                # Unsichtbare Zeichen wie U+FE0F allein haben keine Breite.
+                # pygame wirft dann einen Fehler. Das Stück zeigt ohnehin nichts.
+                continue
+        if not parts:
+            return pygame.Surface((1, 1), pygame.SRCALPHA)
         width = sum(part.get_width() for part in parts)
         height = max(part.get_height() for part in parts)
         image = pygame.Surface((max(1, width), max(1, height)), pygame.SRCALPHA)
