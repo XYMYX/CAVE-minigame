@@ -85,6 +85,29 @@ def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
     assert game.phase == "play"
 
 
+def test_empty_window_keeps_points_for_the_next_voters(tmp_path):
+    game = _game(tmp_path, seed=8)
+    game.pending_points = 500
+    for result in game.votes.close_due(game.time + 2.5):
+        game._apply_votes(result)
+    assert game.pending_points == 500
+    assert game.scoreboard.contributors == {}
+    game.handle_messages([ChatMessage("Nora", "links")])
+    for result in game.votes.close_due(game.time + 5):
+        game._apply_votes(result)
+    assert game.pending_points == 0
+    assert game.scoreboard.contributors["Nora"].points == 500
+
+
+def test_round_end_counts_the_open_window(tmp_path):
+    game = _game(tmp_path, seed=8)
+    game.pending_points = 300
+    game.handle_messages([ChatMessage("Nora", "links")])
+    game._end_round("round.broken")
+    assert game.scoreboard.contributors["Nora"].points == 300
+    assert game.scoreboard.contributors["Nora"].votes == 1
+
+
 def test_chat_during_the_round_pause_counts_in_the_next_round(tmp_path):
     game = _game(tmp_path, seed=9)
     game.pickaxe.integrity = -1000

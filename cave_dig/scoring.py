@@ -1,9 +1,10 @@
 """Punkte, Bestenliste und das Aufteilen auf Chat-Namen.
 
 Der Rundenscore steigt sofort, wenn ein Block bricht. Die Namen auf der
-Bestenliste bekommen ihren Anteil erst, wenn das Stimmen-Fenster schließt.
-So sieht man den Punktestand live, und die "Gräber" gehören zu den Leuten,
-die in dem Moment wirklich abgestimmt haben.
+Bestenliste bekommen ihren Anteil erst, wenn ein Stimmen-Fenster mit Stimmen
+schließt. So sieht man den Punktestand live, und die "Gräber" gehören zu den
+Leuten, die zuletzt wirklich abgestimmt haben. Punkte aus leeren Fenstern
+warten auf die nächsten Stimmen.
 """
 
 from __future__ import annotations

@@ -102,6 +102,10 @@ class VoteAggregator:
             self.entries.clear()
         return results
 
+    def close_now(self) -> VoteResult:
+        """Zählt das offene Fenster sofort aus. Zum Rundenende."""
+        return self._close()
+
     def _close(self) -> VoteResult:
         left_names = [name for name, direction in self.entries if direction == "left"]
         right_names = [name for name, direction in self.entries if direction == "right"]

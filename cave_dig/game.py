@@ -354,12 +354,16 @@ class Game:
         return True
 
     def _apply_votes(self, result: VoteResult) -> None:
-        shares = split_points(self.pending_points, result.credit_names())
+        credited = result.credit_names()
+        shares = split_points(self.pending_points, credited)
         for name, points in shares.items():
             self.scoreboard.add_contributor_points(name, points)
         for name in result.all_voters():
             self.scoreboard.add_vote(name)
-        self.pending_points = 0
+        # Ein leeres Fenster behält die Punkte für die nächsten Stimmen.
+        # YouTube liefert nur alle 50 Sekunden, die meisten Fenster sind leer.
+        if credited:
+            self.pending_points = 0
         if result.winner is None:
             self.nudge_side = None
             self.nudge_timer = 0.45
@@ -478,6 +482,9 @@ class Game:
     def _end_round(self, reason: str) -> None:
         if self.phase == "ended":
             return
+        # Das offene Fenster noch auszählen, sonst gehen die letzten Punkte verloren.
+        if self.votes.entries:
+            self._apply_votes(self.votes.close_now())
         self.phase = "ended"
         self.phase_time = 0.0
         self.end_reason = reason
