@@ -403,6 +403,12 @@ def load_config(path: Path | None = None) -> GameConfig:
 
     data = _deep_merge(DEFAULTS, user)
     try:
+        if str(data["chat"]["youtube"].get("api_key") or "").strip():
+            # Den Wert nicht ausgeben, er soll in keinem Log landen.
+            raise ConfigError(
+                "chat.youtube.api_key steht in config.yaml, und diese Datei liegt in Git. "
+                "Bitte dort löschen und als YOUTUBE_API_KEY in .env eintragen."
+            )
         _apply_env(data)
         return _build(data)
     except (AttributeError, KeyError, TypeError, ValueError) as exc:

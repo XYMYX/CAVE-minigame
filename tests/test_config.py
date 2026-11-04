@@ -69,6 +69,14 @@ def test_wrong_shape_is_a_clear_error(tmp_path, text):
         load_config(path)
 
 
+def test_api_key_in_config_file_is_refused(tmp_path):
+    path = tmp_path / "config.yaml"
+    path.write_text('chat:\n  youtube:\n    api_key: "geheim123"\n', encoding="utf-8")
+    with pytest.raises(ConfigError, match=".env") as caught:
+        load_config(path)
+    assert "geheim123" not in str(caught.value)
+
+
 def test_block_list_must_be_a_list(tmp_path):
     path = tmp_path / "config.yaml"
     path.write_text("chat:\n  blocked: [Name, ' ', YouTube:UCabc]\n", encoding="utf-8")

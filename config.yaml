@@ -133,10 +133,9 @@ chat:
     # 0.5 = beide Seiten gleich oft. Über 0.5 üben die Bots eher links.
     bot_bias_left: 0.5
   youtube:
-    # api_key: du trägst Video-ID und Schlüssel ein.
+    # api_key: Video-ID und Schlüssel stehen in .env, nie in dieser Datei.
     # oauth:   das Spiel sucht deinen laufenden Livestream selbst.
     mode: api_key
-    api_key: ""
     video_id: ""
     # 50 Sekunden halten einen 24/7-Stream unter dem YouTube-Tageslimit.
     # Siehe README, Abschnitt Kontingent. Kleiner nur, wenn du das Limit kennst.
