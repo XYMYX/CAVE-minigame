@@ -330,6 +330,8 @@ class Game:
     def start_event(self, event_id: str | None, *, force: bool = False) -> bool:
         if self.phase != "play":
             return False
+        if not force and not self.config.events_enabled:
+            return False
         if self.event is not None and not self.event.done:
             return False
         if not force and self.time < self.event_ready_at:
@@ -338,6 +340,9 @@ class Game:
             if not self.config.event_ids:
                 return False
             event_id = self.rng.choice(list(self.config.event_ids))
+        elif not force and event_id not in self.config.event_ids:
+            log.debug("Ereignis '%s' steht nicht in events.ids.", event_id)
+            return False
         event = create_event(event_id, self.config)
         if event is None:
             log.info("Ereignis '%s' ist nicht registriert.", event_id)

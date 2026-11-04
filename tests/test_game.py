@@ -1,6 +1,7 @@
 """Die Runde rechnet ohne Fenster: fallen, punkten, neu starten, speichern."""
 
 import logging
+from dataclasses import replace
 from pathlib import Path
 
 from cave_dig.chat.base import ChatMessage
@@ -15,8 +16,6 @@ def _game(tmp_path, seed=4):
     config = load_config(ROOT / "config.yaml")
     languages = load_languages(ROOT / "languages.yaml")
     # Eigene Speicherdatei, damit der Test nicht den echten Stand anfasst.
-    from dataclasses import replace
-
     config = replace(config, save_path=tmp_path / "stand.json")
     return Game(config, languages, seed=seed)
 
@@ -83,6 +82,22 @@ def test_bad_chat_and_unknown_event_do_not_crash(tmp_path):
     )
     game.update(1 / 60)
     assert game.phase == "play"
+
+
+def test_disabled_events_also_stop_chat_commands(tmp_path):
+    game = _game(tmp_path, seed=2)
+    game.config = replace(game.config, events_enabled=False)
+    game.handle_messages([ChatMessage("Nora", "!event dunkel")])
+    assert game.event is None
+
+
+def test_event_outside_the_id_list_cannot_be_started(tmp_path):
+    game = _game(tmp_path, seed=2)
+    game.config = replace(game.config, event_ids=("darkness",))
+    game.handle_messages([ChatMessage("Nora", "!event erz")])
+    assert game.event is None
+    game.handle_messages([ChatMessage("Nora", "!event dunkel")])
+    assert game.event.id == "darkness"
 
 
 def test_empty_window_keeps_points_for_the_next_voters(tmp_path):
