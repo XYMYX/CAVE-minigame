@@ -64,7 +64,7 @@ class GameConfig:
     shelf_gap: int
     vote_window_seconds: float
     one_vote_per_user: bool
-    provider: str
+    providers: tuple[str, ...]
     languages_file: Path
     save_path: Path
     log_dir: Path
@@ -126,9 +126,14 @@ class GameConfig:
     world_seed: int
 
     @property
+    def provider(self) -> str:
+        """Lesbarer Name für das Log, zum Beispiel youtube+twitch."""
+        return "+".join(self.providers)
+
+    @property
     def steer_hold(self) -> float:
         """Wie lange der Schub wirkt. YouTube liefert nur alle min_poll_seconds Stimmen."""
-        if self.provider == "youtube" and self.youtube_transport == "poll":
+        if "youtube" in self.providers and self.youtube_transport == "poll":
             return max(self.hold_seconds, self.youtube_min_poll_seconds)
         return self.hold_seconds
 
@@ -137,6 +142,9 @@ class GameConfig:
         """Pixel pro Block auf der inneren Zeichenfläche. Geht immer auf die Breite."""
         return max(8, self.logical_width // self.columns)
 
+
+# Alle Chat-Anbieter. Ein neuer braucht diesen Namen und einen Eintrag in chat/__init__.py.
+PROVIDER_NAMES = ("simulator", "youtube", "twitch")
 
 # Standardwerte. config.yaml darf einzelne Schlüssel weglassen.
 DEFAULTS: dict = {
@@ -483,12 +491,7 @@ def _build(data: dict) -> GameConfig:
     if logical_w // columns < 8:
         raise ConfigError("Zu viele Spalten für die Breite. columns kleiner machen.")
 
-    provider = str(chat.get("provider", "simulator")).strip().lower()
-    if provider not in ("simulator", "youtube", "twitch"):
-        raise ConfigError(
-            f"chat.provider '{provider}' kenne ich nicht. "
-            "Erlaubt: simulator, youtube, twitch."
-        )
+    providers = parse_providers(chat.get("provider", "simulator"))
 
     mode = str(youtube.get("mode", "api_key")).strip().lower()
     if mode not in ("api_key", "oauth"):
@@ -532,7 +535,7 @@ def _build(data: dict) -> GameConfig:
         shelf_gap=_int(game, "shelf_gap", 1, 8),
         vote_window_seconds=_float_value(vote.get("window_seconds"), "vote.window_seconds", 0.4, 30),
         one_vote_per_user=bool(vote.get("one_per_user", True)),
-        provider=provider,
+        providers=providers,
         languages_file=_resolve(str(game.get("languages_file", "languages.yaml"))),
         save_path=_resolve(str(game.get("save_path", "data/stand.json"))),
         log_dir=_resolve(str(game.get("log_dir", "logs"))),
@@ -709,6 +712,27 @@ def _float_value(value: object, label: str, low: float, high: float) -> float:
     if not low <= number <= high:
         raise ConfigError(f"{label} muss zwischen {low} und {high} liegen, ist aber {number}.")
     return number
+
+
+def parse_providers(value: object) -> tuple[str, ...]:
+    """Liest chat.provider: ein Name, eine Liste oder Namen mit Komma.
+
+    Dieselbe Regel gilt für config.yaml, CAVE_DIG_PROVIDER und --provider.
+    Der Simulator läuft nur allein, sonst stimmen Bots im echten Spielstand mit.
+    """
+    parts = value if isinstance(value, (list, tuple)) else str(value).split(",")
+    cleaned = (str(part).strip().lower() for part in parts)
+    # dict.fromkeys nimmt doppelte Namen heraus und behält die Reihenfolge.
+    names = tuple(dict.fromkeys(name for name in cleaned if name))
+    allowed = ", ".join(PROVIDER_NAMES)
+    if not names:
+        raise ConfigError(f"chat.provider ist leer. Erlaubt: {allowed}.")
+    for name in names:
+        if name not in PROVIDER_NAMES:
+            raise ConfigError(f"chat.provider '{name}' kenne ich nicht. Erlaubt: {allowed}.")
+    if "simulator" in names and len(names) > 1:
+        raise ConfigError("chat.provider: simulator läuft nur allein, nicht mit echtem Chat.")
+    return names
 
 
 def _blocked(value: object) -> tuple[str, ...]:

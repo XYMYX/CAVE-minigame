@@ -198,7 +198,8 @@ Everything you see and every timer lives in [`config.yaml`](config.yaml). Restar
 - `blocks`: hits and points
 - `generation`: which blocks appear at which depth
 - `events`: command, cooldown, random rolls
-- `chat.provider`: `simulator`, `youtube`, or `twitch`
+- `chat.provider`: `simulator`, `youtube`, or `twitch`, or `[youtube, twitch]` for both at once
+- `chat.twitch.channel`: your Twitch channel. The game reads it without a token
 
 Colors are three numbers, red, green, blue, from 0 to 255.
 
@@ -235,7 +236,7 @@ Do not raise on purpose: the game catches errors in `on_start` and `on_update` a
 | `cave_dig/votes.py` | Time window and majority |
 | `cave_dig/scoring.py` | Points and `data/stand.json` |
 | `cave_dig/events/` | Cave-in, darkness, blast, ore vein |
-| `cave_dig/chat/` | Simulator, YouTube, Twitch stub |
+| `cave_dig/chat/` | Simulator, YouTube, Twitch, merging several sources |
 | `cave_dig/render.py` | Everything you see |
 
 `game.py` does not know about a window. That is why tests can run a round without SDL. Same split as “logic here, drawing there” in a C++ program.

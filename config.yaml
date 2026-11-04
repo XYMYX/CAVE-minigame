@@ -126,10 +126,11 @@ colors:
 chat:
   # simulator = Tastatur und Bots, ohne Internet.
   # youtube   = echter Live-Chat (Zugangsdaten in .env).
-  # twitch    = Platzhalter, noch ohne Verbindung.
+  # twitch    = echter Live-Chat, liest ohne Token (nur den Kanal unten eintragen).
+  # Beide gleichzeitig: provider: [youtube, twitch]. Der Simulator läuft nur allein.
   provider: simulator
   # Sperrliste. Ein Eintrag sperrt jeden Namen, der diesen Text enthält (Gross/Klein
-  # ist egal), oder genau eine Kennung wie youtube:UCabc. Gesperrte Personen zählen
+  # ist egal), oder genau eine Kennung wie youtube:UCabc oder twitch:12345. Gesperrte Personen zählen
   # nicht mehr und verschwinden beim nächsten Start aus der Bestenliste.
   # Beispiel: blocked: [Beleidigung, "youtube:UCabc"]
   blocked: []
@@ -154,6 +155,7 @@ chat:
     client_secrets: "client_secret.json"
     token_path: "tokens/youtube_token.json"
   twitch:
+    # Kanalname oder ganze Adresse, zum Beispiel twitch.tv/dein_kanal.
     channel: ""
 
 # Blöcke. hits = Treffer bis der Block weg ist. points = Grundpunkte.

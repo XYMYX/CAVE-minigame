@@ -243,8 +243,10 @@ class Renderer:
                 target.blit(line, (22, line_y))
                 target.blit(points, (width - 22 - points.get_width(), line_y))
         if self.config.show_status and game.status_line:
-            status = self.fonts.render(game.status_line, 13, colors["muted"])
-            target.blit(status, (22, self.config.logical_height - 28))
+            # Mehrere Chat-Quellen ergeben mehrere Zeilen, die letzte steht unten.
+            for index, text in enumerate(reversed(game.status_line.split("\n"))):
+                status = self.fonts.render(text, 13, colors["muted"])
+                target.blit(status, (22, self.config.logical_height - 28 - index * 18))
 
         banner = game.event_title()
         if banner and game.phase == "play":

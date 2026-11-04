@@ -36,6 +36,7 @@ from cave_dig.config import (
     ConfigError,
     estimate_daily_chat_units,
     load_config,
+    parse_providers,
     simulator_save_path,
 )
 from cave_dig.fonts import FontBook
@@ -95,10 +96,10 @@ def main(argv: list[str] | None = None) -> int:
 
     setup_logging(config.log_dir)
     if args.provider:
-        config = replace(config, provider=args.provider)
-    if config.provider == "simulator":
+        config = replace(config, providers=args.provider)
+    if "simulator" in config.providers:
         config = replace(config, save_path=simulator_save_path(config.save_path))
-    if config.provider == "youtube":
+    if "youtube" in config.providers:
         units = estimate_daily_chat_units(config.youtube_min_poll_seconds)
         log.info(
             "YouTube: höchstens ein Aufruf alle %.0f s, im schlimmsten Fall "
@@ -243,10 +244,22 @@ def _held_direction() -> int:
     return direction
 
 
+def _providers(value: str) -> tuple[str, ...]:
+    try:
+        return parse_providers(value)
+    except ConfigError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from exc
+
+
 def _parse_args(argv: list[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Cave Dig starten.")
     parser.add_argument("--config", type=_path, default=None, help="Andere config.yaml")
-    parser.add_argument("--provider", choices=("simulator", "youtube", "twitch"))
+    parser.add_argument(
+        "--provider",
+        type=_providers,
+        default=None,
+        help="Ein Anbieter oder mehrere mit Komma, zum Beispiel youtube,twitch",
+    )
     parser.add_argument("--seed", type=int, default=None, help="Feste Höhle, 0 bleibt Zufall")
     parser.add_argument("--demo", action="store_true", help="Schnellere Bots, eine Erzader")
     parser.add_argument("--headless", action="store_true", help="Kein echtes Fenster (Tests)")

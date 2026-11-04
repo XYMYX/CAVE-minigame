@@ -193,7 +193,8 @@ Alles Sichtbare und alles Zeitliche steht in [`config.yaml`](config.yaml). Nach 
 - `blocks`: Treffer und Punkte
 - `generation`: welche Blöcke in welcher Tiefe vorkommen
 - `events`: Befehl, Abklingzeit, Zufall
-- `chat.provider`: `simulator`, `youtube` oder `twitch`
+- `chat.provider`: `simulator`, `youtube` oder `twitch`, für beide gleichzeitig `[youtube, twitch]`
+- `chat.twitch.channel`: dein Twitch-Kanal. Das Spiel liest ohne Token mit
 
 Farben sind drei Zahlen Rot, Grün, Blau von 0 bis 255.
 
@@ -228,7 +229,7 @@ Wirf eine Ausnahme lieber nicht absichtlich: das Spiel fängt Fehler in `on_star
 | `cave_dig/votes.py` | Zeitfenster und Mehrheit |
 | `cave_dig/scoring.py` | Punkte und `data/stand.json` |
 | `cave_dig/events/` | Einsturz, Dunkelheit, Sprengung, Erzader |
-| `cave_dig/chat/` | Simulator, YouTube, Twitch-Platzhalter |
+| `cave_dig/chat/` | Simulator, YouTube, Twitch, Zusammenführen mehrerer Quellen |
 | `cave_dig/render.py` | Alles, was du siehst |
 
 `game.py` kennt kein Fenster. Darum können die Tests eine Runde rechnen, ohne SDL. Das ist derselbe Schnitt wie „Logik hier, Zeichnen dort“ in einem C++-Programm.

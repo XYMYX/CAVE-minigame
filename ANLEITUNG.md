@@ -43,6 +43,16 @@ Stürzt das Spiel ab, startet das Skript es nach 10 Sekunden neu. Bei einer fals
 
 Den Streamschlüssel von YouTube brauchst du hier nicht. Der gehört nur in OBS.
 
+## Twitch-Chat anschliessen
+
+Twitch braucht kein Konto und keinen Token, das Spiel liest nur mit.
+
+1. In `config.yaml` unter `chat.twitch.channel` deinen Kanalnamen eintragen.
+2. `chat.provider` auf `twitch` stellen, oder für beide Chats gleichzeitig auf `[youtube, twitch]`.
+3. Spiel neu starten. Unten im Bild steht pro Chat eine Zeile, ob er verbunden ist.
+
+Reisst die Verbindung ab, verbindet sich das Spiel selbst neu. Dieselbe Person auf YouTube und Twitch zählt als zwei Personen. Sperren geht mit `twitch:` und der Benutzernummer in `chat.blocked`, oder über den Namen.
+
 ## 3. OBS
 
 1. YouTube Studio → Livestream starten → Streamschlüssel kopieren.
