@@ -3,7 +3,14 @@ REM Cave Dig starten. Legt beim ersten Mal eine virtuelle Umgebung an.
 setlocal
 cd /d "%~dp0"
 
-where py >nul 2>&1 && (set "PY=py -3") || (set "PY=python")
+REM Ganz neue Python-Versionen haben oft noch kein fertiges pygame. Darum zuerst diese.
+set "PY="
+for %%V in (3.12 3.13 3.11 3.10) do (
+  if not defined PY py -%%V -c "pass" >nul 2>&1 && set "PY=py -%%V"
+)
+if not defined PY (
+  where py >nul 2>&1 && (set "PY=py -3") || (set "PY=python")
+)
 
 %PY% -c "import sys; raise SystemExit(0 if sys.version_info >= (3, 10) else 1)"
 if errorlevel 1 (
